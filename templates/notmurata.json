@@ -1,0 +1,26 @@
+{
+    "barcodes": [
+        {
+            "angle": 0,
+            "area": 11324,
+            "centerX": 1685,
+            "centerY": 1351,
+            "content": "1PGCM21BR71H104KA37L",
+            "height": 19,
+            "type": "Code 39",
+            "width": 400
+        },
+        {
+            "angle": 0,
+            "area": 10850,
+            "centerX": 1564,
+            "centerY": 1435,
+            "content": "1TSC0209FC6",
+            "height": 31,
+            "type": "Code 39",
+            "width": 100
+        }
+        
+    ],
+    "name": "NotMurata"
+}

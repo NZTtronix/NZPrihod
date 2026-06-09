@@ -1,0 +1,36 @@
+{
+    "keywords": [
+        {
+            "keyword": "[NULL]",
+            "fullname": "Not Used"
+        },
+        {
+            "keyword": "[PN]",
+            "fullname": "Part Number"
+        },
+        {
+            "keyword": "[DT]",
+            "fullname": "Date Time"
+        },
+        {
+            "keyword": "[QTY]",
+            "fullname": "Quantity"
+        },
+        {
+            "keyword": "[Footprint]",
+            "fullname": "Footprint"
+        },
+        {
+            "keyword": "[Comment]",
+            "fullname": "Comment"
+        },
+        {
+            "keyword": "[EM]",
+            "fullname": "Emasqwe"
+        },
+        {
+            "keyword": "[]",
+            "fullname": "Not used"
+        }
+    ]
+}
