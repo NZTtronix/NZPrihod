@@ -7,10 +7,10 @@
 
 
 int main(int argc, char *argv[])
-{
+{   
     QGuiApplication  app(argc, argv);
     QQmlApplicationEngine engine;
-
+    QLOGGING_H
     // OpenCVImageProvider *provider = new OpenCVImageProvider();
     // engine.addImageProvider("ImageProvider", provider);
 

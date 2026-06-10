@@ -33,9 +33,7 @@ Page {
         keywordsListModel.remove(index,1);
         
     }
-    signal addNewItem()
-    signal saveChanges()
-    signal removeItems()
+   
 
     property var headerText
     property var barcodeAnalyzerId

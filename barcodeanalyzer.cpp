@@ -1,7 +1,7 @@
 #include "barcodeanalyzer.h"
 #include "opencv2/imgcodecs.hpp"
 
-  #define DebugShowImages 0
+  // #define DebugShowImages 0
 
 #define ZXING_EXPERIMENTAL_API 1
 #define EXPECTED_REEL_RADIUS (900)
@@ -15,6 +15,175 @@ static cv::Scalar getcolor()
 }
 static cv::Scalar whitecolor(255, 255, 255);
 
+
+QString BarcodeAnalyzer::processTemplateImage(QString templateName)
+{
+
+  //0 ЧТЕНИЕ ИЗОБРАЖЕНИЯ И ПОДГОТОВКА ВЫХОДНЫХ ПУТЕЙ 
+  int variant = 0;
+  QString localPath = templatesPath + templateName + ".bmp";
+  qDebug()<<"localpath:"<<localPath;
+
+  cv::Mat img = cv::imread(localPath.toStdString());
+  if (img.empty())
+    return QString("Ошибка: не удалось открыть %1").arg(localPath);
+  QFileInfo fileInfo(localPath);
+  QDateTime dt = QDateTime::currentDateTime();
+  QString dateTimeString = dt.toString("yy-MM-dd_HH-mm-ss");
+  QString resultReport = QString("");
+  if (dateTimeString.isEmpty() || dateTimeString.isNull())
+    dateTimeString = QString("yy-MM-dd_HH-mm-ss");
+  QString outputImgName = templatesPath + templateName + "_result" + ".bmp";
+  QString outputJsonName = fileInfo.absolutePath() + QString("/") +
+                           templateName + QString(".json");
+
+  cout << "outputImgName=" << outputImgName.toStdString() << endl;
+  cout << "outputJsonName=" << outputJsonName.toStdString() << endl;
+  // 1 ОБРЕЗКА ПО КАТУШКЕ
+  cv::Mat image = cropImageByReel(img);
+  // 2 ВЫЧИСЛЕНИЕ УГЛА
+  double angle = alignImageAngle(image);
+  // 3 ПОВОРОТ ПО УГЛУ ДО КРАТНОГО 90
+  cv::Point2f center((float)image.cols / 2.0f, (float)image.rows / 2.0f);
+  cv::Mat M = cv::getRotationMatrix2D(center, angle, 1.0);
+  cv::Mat rotated;
+  cv::warpAffine(image, rotated, M, image.size(), cv::INTER_LINEAR,
+                 cv::BORDER_REPLICATE);
+  image = rotated.clone();
+  shortShow(image);
+
+  // 4 УСТАНОВКА ЭКСПОЗИЦИИ И УРОВНЯ ЧЕРНОГО В НЕСКОЛЬКИХ ВАРИАНТАХ
+
+  struct exposureParams
+  {
+    int exposure;
+    int blackLevel;
+  };
+  std::vector<exposureParams> exposureVariants = {
+      {7, 55}, {5, 55}, {5, 40}, {4, 40}, {1, 0}
+    };
+  // 5 ПРИМЕНЕНИЕ ВАРИАНТОВ ЭКСПОЗИЦИИ К НЕСКОЛЬКИМ КАРТИНКАМ В ВЕКТОРЕ
+
+  std::vector<cv::Mat> exposuredImgs;
+  exposuredImgs.reserve(exposureVariants.size());
+  for (const auto &params : exposureVariants)
+  {
+    cv::Mat dst;
+    adjustExposureWithBlackLevel(image, dst, params.exposure, params.blackLevel);
+    exposuredImgs.push_back(dst);
+    shortShow(dst);
+  }
+  // cv::Mat exposured;
+  
+  // adjustExposureWithBlackLevel(image, exposured, exposureVariants[2].exposure, exposureVariants[2].blackLevel);
+
+// exposuredImgs
+
+
+  // 6 УСТАНОВКА ОБЩИХ ПАРАМЕТРОВ ДЛЯ ПРЕОБРАЗОВАНИЯ ИЗОБРАЖЕНИЯ
+
+  uint8_t maxBarcodesQty = 0;
+  int maxQtyVariant = 0;
+  cv::Mat BestExposuredImg;
+  ZXing::Barcodes bestBarcodes;
+  ZXing::ReaderOptions options;
+  options.setTryRotate(true);
+  options.setBinarizer(ZXing::Binarizer::LocalAverage);
+  options.setFormats(ZXing::BarcodeFormat::AllLinear);
+
+  // 7 ЗАПИСЬ МАКСИМАЛЬНОГО КОЛ-ВА ШТРИХКОДОВ, ЗАПИСЬ ЛУЧШЕГО СПИСКА БАРКОДОВ СРЕДИ ВСЕХ ВАРИАНТОВ ЭКСПОЗИЦИИ
+  int barcodeQtys[exposuredImgs.size()] = {0};
+
+  for (size_t i = 0; i < exposuredImgs.size(); ++i)
+  {
+    printf("exposuredImgs.size() = %d\n", exposuredImgs.size());
+    auto imgv = ZXing::ImageView(exposuredImgs[i].data, exposuredImgs[i].cols, exposuredImgs[i].rows, ZXing::ImageFormat::Lum);
+    auto brcds = ZXing::ReadBarcodes(imgv, options);
+    
+    barcodeQtys[i] = brcds.size();
+    printf("barcodeQtys[%d].size() = %d\n", i, brcds.size());
+
+    if (brcds.size() > maxBarcodesQty)
+    {
+      maxQtyVariant = i;
+      maxBarcodesQty = brcds.size();
+      BestExposuredImg = exposuredImgs[i].clone();
+      auto BestImgv = ZXing::ImageView(BestExposuredImg.data, BestExposuredImg.cols,
+                                       BestExposuredImg.rows, ZXing::ImageFormat::Lum);
+      bestBarcodes = ZXing::ReadBarcodes(BestImgv, options);
+          shortShow(BestExposuredImg);
+
+    }
+  }
+      // BestExposuredImg = exposured.clone();
+      // auto BestImgv = ZXing::ImageView(BestExposuredImg.data, BestExposuredImg.cols,
+      //                                  BestExposuredImg.rows, ZXing::ImageFormat::Lum);
+      // bestBarcodes = ZXing::ReadBarcodes(BestImgv, options);
+
+
+
+    if (bestBarcodes.empty())
+    return QString("Штрихкоды не найдены.");
+
+  // 8 СОРТИРОВКА БАРКОДОВ ПО ШИРИНЕ И ПОДГОТОВКА ИНФОРМАЦИИ ДЛЯ ВЫВОДА
+  BarcodeList bclist;
+  resultReport.append(QString("Найдено штрихкодов: %1\n").arg(bestBarcodes.size()));
+  for (size_t idx = 0; idx < bestBarcodes.size(); ++idx)
+  {
+    const auto &barcode = bestBarcodes[idx];
+    if (!barcode.isValid())
+      continue;
+    bclist.items.emplace_back();
+    bclist.items.back().set(barcode);
+    bclist.items.back().setnum(idx);
+  }
+  std::sort(bclist.items.begin(), bclist.items.end(),
+            [](const MyBarcodeInfo &a, const MyBarcodeInfo &b)
+            {
+              return a.width > b.width;
+            });
+  // 9 ВЫВОД ИНФОРМАЦИИ НА ИЗОБРАЖЕНИЕ И ПОДГОТОВКА ОТЧЕТА
+  cvtColor(BestExposuredImg, BestExposuredImg, cv::COLOR_GRAY2BGR);
+
+  for (size_t idx = 0; idx < bclist.items.size(); ++idx)
+  {
+    const auto &barcode = bestBarcodes[bclist.items[idx].localNum];
+    resultReport += QString("[%1]:").arg(idx + 1);
+    resultReport += bclist.items[idx].ToQstring();
+
+    auto position = barcode.position();
+    std::vector<cv::Point> points;
+    cv::Scalar currentcolor = getcolor();
+    for (int i = 0; i < 4; ++i)
+    {
+      points.push_back(cv::Point(position[i].x, position[i].y));
+    }
+    for (size_t i = 0; i < 4; ++i)
+    {
+      cv::line(BestExposuredImg, points[i], points[(i + 1) % 4], currentcolor, 5);
+    }
+    std::string label = "#" + std::to_string(idx + 1);
+    cv::putText(BestExposuredImg, label, points[0] + cv::Point(-12, -12),
+                cv::FONT_HERSHEY_SIMPLEX, 2.0, currentcolor, 4);
+  }
+
+  // 10 СОХРАНЕНИЕ ИЗОБРАЖЕНИЯ И ОТЧЕТА, СРАВНЕНИЕ С ШАБЛОНАМИ ПРОИЗВОДИТЕЛЕЙ
+
+   QString FoundTemplate = findMatchWithinTemplates(bclist);
+   resultReport += QString("This pattern matches template: ") + FoundTemplate;
+   cout << "This pattern matches template: " << FoundTemplate.toStdString()
+        << "\n";
+
+  bclist.saveToFile(outputJsonName);
+  cv::imwrite(outputImgName.toStdString(), BestExposuredImg);
+   cout << "getImagePath().toStdString()=" << getImgPath().toStdString() << endl;
+ 
+  
+  return resultReport;
+}
+
+
+
 bool BarcodeAnalyzer::saveTo(QString jsonstr,const QString &filePath) const {
     
     QFile file(filePath);
@@ -26,7 +195,34 @@ bool BarcodeAnalyzer::saveTo(QString jsonstr,const QString &filePath) const {
     return true;
 }
 
+bool BarcodeAnalyzer::copyImageToTemplatesFolderAsChosenTemplateImage(QString templateName, QUrl chosenImage){
+  QString dstPath; 
+  if (!chosenImage.isValid()) return false;
+  
+  QString srcPath;
+    qDebug()<<chosenImage.toLocalFile();
 
+  srcPath = chosenImage.toLocalFile();
+  QFileInfo srcFileInfo(srcPath);
+
+  
+
+  dstPath = templatesFolder + templateName + "."+srcFileInfo.suffix();
+
+  if (QFile::exists(dstPath)) {
+    QFile::remove(dstPath);
+  }
+  if (QFile::copy(srcPath,dstPath)==false) return false;
+  return true;
+}
+   bool CreateNewTemplateJson(QString &templateName){
+
+   }
+
+
+bool BarcodeAnalyzer::makeTemplateFromSrcImage(QString templateName){
+  
+}
 
 void BarcodeAnalyzer::setImgPath(const QString &path)
 {
@@ -536,17 +732,29 @@ QStringList BarcodeAnalyzer::getFolderContent(const QString &filePath)
 {
   QDir dir(filePath);
   dir.setFilter(QDir::Files);
- 
-    
-  
-  // if (filter.isEmpty() )  
-  //  nameFilters.append("*.");
-  //  nameFilters.append(filter);
-  
-  // dir.setNameFilters(nameFilters);
   QStringList fileslist = dir.entryList();
   return fileslist;
 }
+QStringList BarcodeAnalyzer::getFolderJsonBasenames(const QString &filePath) 
+{
+  QStringList nameFilters;
+  nameFilters.append("*.json");
+  cout << "getFolderJsonBasenames filepath: "<< filePath.toStdString() <<endl;
+  QDir dir(filePath);
+  dir.setFilter(QDir::Files);
+  dir.setNameFilters(nameFilters);
+  QFileInfoList fileInfolist = dir.entryInfoList(nameFilters,QDir::Files);
+  QStringList basenames;
+  cout << "json basenames: ";
+  for (int i=0; i<fileInfolist.size();i++) {
+    basenames.append(fileInfolist.at(i).completeBaseName());
+    cout << basenames.at(i).toStdString() << " ";
+  }
+  cout << endl;
+
+  return basenames;
+}
+
 
 
 void BarcodeAnalyzer::refreshMaterialTemplates()

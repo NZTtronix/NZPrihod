@@ -49,6 +49,8 @@ public:
   {
   }
   Q_INVOKABLE QString processImage(const QString &fileUrlOrPath);
+  Q_INVOKABLE QString processTemplateImage(QString templateName);
+
   Q_INVOKABLE void refreshMaterialTemplates();
   QString getImgPath() { return m_imgPath; }
   void setImgPath(const QString &path);
@@ -57,6 +59,14 @@ public:
   Q_INVOKABLE QString loadJsonStringFromTemplateFile(const QString &filePath);
   Q_INVOKABLE QStringList loadAllTemlateFileNames();
   Q_INVOKABLE QStringList getFolderContent(const QString &filePath);
+  Q_INVOKABLE QStringList getFolderJsonBasenames(const QString &filePath);
+  // Q_INVOKABLE bool CreateNewTemplateJson(QString &templateName);
+
+
+  Q_INVOKABLE bool copyImageToTemplatesFolderAsChosenTemplateImage(QString templateName,QUrl chosenImage);
+  Q_INVOKABLE bool makeTemplateFromSrcImage(QString templateName);
+
+
 Q_INVOKABLE bool saveTo(QString jsonstr,const QString &filePath) const;
   enum deskewVariant
   {
@@ -71,9 +81,10 @@ Q_INVOKABLE bool saveTo(QString jsonstr,const QString &filePath) const;
   };
   
 private:
-  const char *templatesFolder = "C:/projects/qt/QmlAppTest/templates";
+  const char *templatesFolder = "C:/projects/qt/QmlAppTest/templates/";
   QStringList materialTemplates;
   QStringList materialTemplatesNames;
+  QString templatesPath = "C:/projects/qt/QmlAppTest/templates/";
   QString findMatchWithinTemplates(BarcodeList &readedBarcode);
   QString m_imgPath;
   cv::Mat cropImageByReel(const cv::Mat &src);

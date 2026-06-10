@@ -74,8 +74,8 @@ Window {
         
 
     }
-    width: 1440
-    height: 900
+    width: 1600
+    height: 1200
     x: 1400
     y: 800
 
