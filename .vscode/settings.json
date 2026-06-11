@@ -1,0 +1,13 @@
+{
+    "multiCommand.commands": [
+  {
+    "command": "multiCommand.foldExceptRoot",
+    "sequence": [
+      "cursorTop",
+      "editor.unfold", 
+      "editor.foldAll"
+    ]
+  }
+]
+
+}

@@ -52,6 +52,7 @@ qt_add_qml_module(QmlApp
                     CustomPageHeader.qml
                     KeywordsConfiguration.qml
                     PrintConfiguration.qml
+                    
         SOURCES barcodeanalyzer.h barcodeanalyzer.cpp
                  opencvimageprovider.h
          barcodeanalyzer.h barcodeanalyzer.cpp
@@ -60,6 +61,7 @@ qt_add_qml_module(QmlApp
          mybarcodeinfo.h mybarcodeinfo.cpp
          printtemplate.h printtemplate.cpp
          keywordtemplate.h keywordtemplate.cpp
+         MatchModel.h MatchModel.cpp
          RESOURCES 
             Resources/icons/back.svg
             Resources/icons/home.svg

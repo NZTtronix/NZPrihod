@@ -4,7 +4,7 @@
 #include <QQmlApplicationEngine>
 #include "barcodeanalyzer.h"
 #include "opencvimageprovider.h"
-
+#include "MatchModel.h"
 
 int main(int argc, char *argv[])
 {   
@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
     // OpenCVImageProvider *provider = new OpenCVImageProvider();
     // engine.addImageProvider("ImageProvider", provider);
 
+    qmlRegisterType<MatchModel>("MyComponents", 1, 0, "MatchModel");
 
     qmlRegisterType<BarcodeAnalyzer>("Backend", 1, 0, "BarcodeAnalyzer");
 

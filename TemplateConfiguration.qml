@@ -3,25 +3,28 @@ import QtQuick.Controls 2.15
 import QtQuick.Dialogs
 import QtQuick.Layouts 2.15
 import Backend 1.0
+import MyComponents 1.0
 
 Page {
     id: root
+
     function onBackClicked() {
         console.log("back clicked:");
         root.stackViewId.popCurrentItem();
     }
     function onItemClicked(itemName) {
         console.log("Clicked at ", itemName);
-        var jsonstringTemplate = root.barcodeAnalyzerId.loadJsonStringFromTemplateFile(templatePath + itemName + ".json");
-         console.log(jsonstringTemplate);
-        var obj = JSON.parse(jsonstringTemplate);
-        console.log("templateImage.source old = " +  root.barcodeAnalyzerId.imgPath);
-        
-        console.log("templateImage.source = " +  templatePath + itemName + ".bmp");
-        
-        templateImage.source ="file:///"+ templatePath + itemName + ".bmp";
         chosenTemplate = itemName;
-        rectReco.visible= true
+        var jsonstringTemplate = root.barcodeAnalyzerId.loadJsonStringFromTemplateFile(templatePath + chosenTemplate + ".json");
+        console.log(jsonstringTemplate);
+        var obj = JSON.parse(jsonstringTemplate);
+        console.log("templateImage.source old = " + root.barcodeAnalyzerId.imgPath);
+
+        console.log("templateImage.source = " + templatePath + itemName + ".bmp");
+
+        templateImage.source = "file:///" + templatePath + itemName + ".bmp";
+        rectReco.visible = true;
+        getBarcodesList();
 
         // var paramsReco = {
         //     barcodeAnalyzerId: root.barcodeAnalyzerId,
@@ -51,40 +54,61 @@ Page {
         //     stackParse.push(objParse);
         // }
     }
-    function onLoadImage(selectedImage){
+    function onLoadImage(selectedImage) {
         console.log("onLoadImage is called, image: " + selectedImage + "current template is: " + chosenTemplate);
-        console.log ("copyImageToTemplatesFolderAsChosenTemplateImage returned "+ barcodeAnalyzerId.copyImageToTemplatesFolderAsChosenTemplateImage(chosenTemplate, selectedImage));
-        console.log("templateImage.source = " +  templatePath + chosenTemplate + ".bmp");
+        console.log("copyImageToTemplatesFolderAsChosenTemplateImage returned " + barcodeAnalyzerId.copyImageToTemplatesFolderAsChosenTemplateImage(chosenTemplate, selectedImage));
+        console.log("templateImage.source = " + templatePath + chosenTemplate + ".bmp");
         templateImage.source = "file:///" + templatePath + "NoImage.bmp";
 
-        templateImage.source ="file:///"+ templatePath + chosenTemplate + ".bmp";
+        templateImage.source = "file:///" + templatePath + chosenTemplate + ".bmp";
         var log = barcodeAnalyzerId.processTemplateImage(chosenTemplate);
         console.log();
-        templateImage.source ="file:///"+ templatePath + chosenTemplate + "_result"+ ".bmp";
-        
-        
-        
+        templateImage.source = "file:///" + templatePath + chosenTemplate + "_result" + ".bmp";
     }
-    function onToggleResult(){
+    function onToggleResult() {
         console.log("Clicked at ToggleResult");
-        console.log("templateImage.source is: "+templateImage.source);
-        console.log("string to compare 1 is:"+ String("file:///"+ templatePath + chosenTemplate + ".bmp"));
-        console.log("string to compare 2 is:"+ String("file:///"+ templatePath + chosenTemplate  +"_result" + ".bmp"));
+        console.log("templateImage.source is: " + templateImage.source);
+        console.log("string to compare 1 is:" + String("file:///" + templatePath + chosenTemplate + ".bmp"));
+        console.log("string to compare 2 is:" + String("file:///" + templatePath + chosenTemplate + "_result" + ".bmp"));
 
-        if (String("file:///"+ templatePath + chosenTemplate + ".bmp")==templateImage.source)
-         templateImage.source = "file:///"+ templatePath + chosenTemplate +"_result" + ".bmp" ;
-        else if (String("file:///"+ templatePath + chosenTemplate +"_result" + ".bmp") == templateImage.source) 
-            templateImage.source = "file:///"+ templatePath + chosenTemplate + ".bmp";
-        
+        if (String("file:///" + templatePath + chosenTemplate + ".bmp") == templateImage.source)
+            templateImage.source = "file:///" + templatePath + chosenTemplate + "_result" + ".bmp";
+        else if (String("file:///" + templatePath + chosenTemplate + "_result" + ".bmp") == templateImage.source)
+            templateImage.source = "file:///" + templatePath + chosenTemplate + ".bmp";
     }
-    function onCaptureImage(){
+    function onCaptureImage() {
         console.log("Clicked at CaptureImage");
     }
+    function getBarcodesList() {
+        console.log("root.templatePath: ", templatePath, "root.templateName: ", chosenTemplate);
+        var currentTemplateJsonString = barcodeAnalyzerId.loadJsonStringFromTemplateFile(templatePath + chosenTemplate + ".json");
+        console.log("currentTemplateJsonString:", currentTemplateJsonString);
+
+        var obj = JSON.parse(currentTemplateJsonString);
+        barcodesListModel.clear();
+        if (!obj || !obj.barcodes)
+            return;
+        for (var i = 0; i < obj.barcodes.length; ++i) {
+            var entry = obj.barcodes[i];
+            barcodesListModel.append({
+                "idx": i,
+                "content": entry.content,
+                "type": entry.type,
+                "widthpx": entry.width
+            });
+            console.log("appended model with entry.content = " + entry.content);
+        }
+        console.log();
+    }
+    function onBarcodeClicked(indexClicked) {
+        console.log("Clicked at barcode #:  ", indexClicked);
+    }
+
     property var headerText
     property var barcodeAnalyzerId
     property var stackViewId
     property var templatePath: "C:/projects/qt/QmlAppTest/templates/"
-    property var chosenTemplate 
+    property var chosenTemplate
     anchors.fill: parent
     background: Rectangle {
         color: "#4f8f8f"
@@ -93,18 +117,11 @@ Page {
     header: CustomPageHeader {
         id: myHeader
     }
-    Component {
-        id: templatePropertyRecognition
-        TemplatePropertyRecognition {}
-    }
-    Component {
-        id: templatePropertyParse
-        TemplatePropertyParse {}
-    }
+
+    //TEMPLATES LIST SUBHEADER
     ListModel {
         id: templateList
     }
-
     Rectangle {
         id: subheader
         width: 300
@@ -157,6 +174,7 @@ Page {
         }
     }
 
+    //TEMPLATES LIST
     Rectangle {
         anchors.fill: parent
         anchors.topMargin: 100
@@ -179,7 +197,7 @@ Page {
                 itemWidth: 300
 
                 textColor: "white"
-                customListItemNames: root.barcodeAnalyzerId.getFolderJsonBasenames(root.templatePath);
+                customListItemNames: root.barcodeAnalyzerId.getFolderJsonBasenames(root.templatePath)
             }
 
             Column {
@@ -223,7 +241,7 @@ Page {
                         root.onAddNewItem();
                     }
                 }
-                
+
                 Button {
                     id: removeButton
                     height: 40
@@ -246,12 +264,12 @@ Page {
             }
         }
     }
-
+    //IMAGE
     Rectangle {
         id: rectReco
         x: 400
         y: 0
-        width:  800
+        width: 800
         anchors.bottom: parent.bottom
         anchors.top: parent.top
         anchors.bottomMargin: 100
@@ -260,90 +278,151 @@ Page {
 
         Rectangle {
 
-            width:  800
+            width: 800
             height: 800
             color: "black"
 
             Image {
                 id: templateImage
-                cache: false 
+                cache: false
                 anchors.fill: parent
                 source: root.barcodeAnalyzerId.imgPath
                 fillMode: Image.PreserveAspectFit
             }
         }
+        //IMAGE BUTTONS
         Column {
-                                    width: parent.width
+            width: parent.width
 
-                anchors.bottom: parent.bottom
-                spacing: 1
-                Button {
-                    id: loadImageButton
+            anchors.bottom: parent.bottom
+            spacing: 1
+            Button {
+                id: loadImageButton
+                height: 40
+                width: parent.width
+
+                background: Rectangle {
                     height: 40
-                    width: parent.width
-
-                    background: Rectangle {
-                        height: 40
-                        color: "#101019"
-                        Text {
-                            anchors.centerIn: parent
-                            text: "loadImage"
-                            color: "white"
-                            font.pointSize: 14
-                        }
-                    }
-                    onClicked: {
-                        confirmLoadDialog.open();
+                    color: "#101019"
+                    Text {
+                        anchors.centerIn: parent
+                        text: "loadImage"
+                        color: "white"
+                        font.pointSize: 14
                     }
                 }
-                Button {
-                    id: captureImageButton
-                    height: 40
-                    width: parent.width
+                onClicked: {
+                    confirmLoadDialog.open();
+                }
+            }
+            Button {
+                id: captureImageButton
+                height: 40
+                width: parent.width
 
-                    background: Rectangle {
-                        height: 40
-                        color: "#101019"
-                        Text {
-                            anchors.centerIn: parent
-                            text: "captureImage"
-                            color: "white"
-                            font.pointSize: 14
-                        }
-                    }
-                    onClicked: {
-                        root.onCaptureImage();
+                background: Rectangle {
+                    height: 40
+                    color: "#101019"
+                    Text {
+                        anchors.centerIn: parent
+                        text: "captureImage"
+                        color: "white"
+                        font.pointSize: 14
                     }
                 }
-                
-                Button {
-                    id: toggleResultButton
-                    height: 40
-                    width: parent.width
-
-                    background: Rectangle {
-                        height: 40
-                        color: "#101019"
-                        Text {
-                            anchors.centerIn: parent
-                            text: "toggleResult"
-                            color: "white"
-                            font.pointSize: 14
-                        }
-                    }
-                    onClicked: {
-                        root.onToggleResult();
-                    }
+                onClicked: {
+                    root.onCaptureImage();
                 }
             }
 
+            Button {
+                id: toggleResultButton
+                height: 40
+                width: parent.width
 
+                background: Rectangle {
+                    height: 40
+                    color: "#101019"
+                    Text {
+                        anchors.centerIn: parent
+                        text: "toggleResult"
+                        color: "white"
+                        font.pointSize: 14
+                    }
+                }
+                onClicked: {
+                    root.onToggleResult();
+                }
+            }
+        }
     }
 
+    // BARCODES LIST
+    ListModel {
+        id: barcodesListModel
+    }
+    Rectangle {
+        id: rectBarcodes
+        anchors.left: rectReco.right
+        anchors.leftMargin: 50
+        y: 0
+        width: 300
+        anchors.bottom: parent.bottom
+        anchors.top: parent.top
+        anchors.bottomMargin: 100
+        color: "transparent"
+        visible: true
+
+        ListView {
+            id: listViewBarcodes
+
+            anchors.fill: parent
+
+            model: barcodesListModel
+            ScrollIndicator.vertical: ScrollIndicator {
+                parent: listview.parent
+                anchors.top: listview.top
+                anchors.left: listview.right
+                anchors.bottom: listview.bottom
+            }
+            spacing: 1
+            delegate: Rectangle {
+                color: ListView.isCurrentItem ? "#203030" : "#101019"
+                width: parent.width
+                height: 60
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        listViewBarcodes.currentIndex = index;
+                        root.onBarcodeClicked(index);
+                    }
+                }
+                Column {
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: 60
+
+                    Label {
+                        text: "[" + idx + "]: " + content
+                        color: "white"
+                        font.bold: true
+                        font.pixelSize: 16
+                    }
+                    Label {
+                        text: "type: " + type //+    "\t"+  "width:"+  "\t" +widthpx
+                        color: "white"
+                        font.pixelSize: 16
+                    }
+                }
+            }
+        }
+    }
+    // FILEDIALOGS
     MessageDialog {
         id: confirmLoadDialog
         title: "Загрузить изображение"
-        text : "Вы уверены, что хотите загрузить новое изображение шаблона? Старый шаблон будет перезаписан"
+        text: "Вы уверены, что хотите загрузить новое изображение шаблона? Старый шаблон будет перезаписан"
         buttons: MessageDialog.Ok | MessageDialog.Cancel
         onAccepted: {
             // пользователь нажал OK — выполняем вашу функцию
@@ -354,9 +433,11 @@ Page {
         id: fileDialog
         currentFolder: StandardPaths.standardLocations(StandardPaths.PicturesLocation)[0]
         onAccepted: {
-            root.onLoadImage(selectedFile); 
-        }         
+            root.onLoadImage(selectedFile);
+        }
     }
+
+    //STACKVIEW
     Rectangle {
         id: stackRectParse
         x: rectReco.x + width + 50
@@ -375,14 +456,21 @@ Page {
         myHeader.backClicked.connect(onBackClicked);
         var MaterialNames = barcodeAnalyzerId.getFolderJsonBasenames(templatePath);
         console.log("MaterialNames.length:", MaterialNames.length);
-
+        listViewBarcodes.currentIndex = -1;
         for (let i = 0; i < MaterialNames.length; ++i) {
             templateList.append(MaterialNames[i]);
         }
         console.log("templateList.count:", templateList.count);
-        console.log("templateImage.source = ", Qt.resolvedUrl("C:/projects/qt/QmlAppTest/templates/NoImage.bmp")
-);
-        
+        console.log("templateImage.source = ", Qt.resolvedUrl("C:/projects/qt/QmlAppTest/templates/NoImage.bmp"));
+
         templateImage.source = "file:///C:/projects/qt/QmlAppTest/templates/NoImage.bmp";
+    }
+
+    // NOT USED COMPONENTS
+    
+
+    Component {
+        id: templatePropertyParse
+        TemplatePropertyParse {}
     }
 }

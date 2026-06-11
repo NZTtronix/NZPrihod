@@ -17,9 +17,7 @@ Rectangle {
     signal itemClicked(string itemName)
 
     color: "transparent"
-    // anchors.left: parent.left
-    // anchors.top: parent.top
-    // anchors.bottom: parent.bottom
+    
     anchors.topMargin: marginsTop
     anchors.fill: parent
     anchors.bottomMargin: 200
@@ -40,8 +38,8 @@ Rectangle {
             id: delegateRect
             width: itemWidth
             height: itemHeight
-            
-            color: ListView.isCurrentItem ?  "#101019" : "#203030"
+
+            color: ListView.isCurrentItem ? "#203030" : "#101019"
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
