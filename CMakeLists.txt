@@ -1,10 +1,14 @@
 cmake_minimum_required(VERSION 3.19)
-project(QmlApp LANGUAGES CXX)
+set(CMAKE_PROJECT_NAME QmlApp)
+
+project(${CMAKE_PROJECT_NAME} LANGUAGES CXX)
 
 set(CMAKE_AUTOMOC ON)
 set(ZXing_INCLUDE_DIRS C:/ZXing/include)
 set(ZXing_DIR C:/zxing_cpp_vs/build)
 set(OpenCV_DIR C:/OpenCV/OpenCV-MinGW-Build-OpenCV-4.5.2-x64)
+
+
 
 list(APPEND CMAKE_PREFIX_PATH "C:/ZXing")
 list(APPEND CMAKE_PREFIX_PATH "C:/OpenCV/OpenCV-MinGW-Build-OpenCV-4.5.2-x64")
@@ -13,84 +17,87 @@ list(APPEND CMAKE_PREFIX_PATH "C:/OpenCV/OpenCV-MinGW-Build-OpenCV-4.5.2-x64")
 find_package(Qt6 6.5 REQUIRED COMPONENTS
     Quick
     Multimedia
+        Qml
+        Gui
+
 )
 find_package(ZXing REQUIRED )
 find_package(OpenCV REQUIRED)
 qt_standard_project_setup()
 
 qt_add_executable(QmlApp
-    main.cpp
+    Core/Src/main.cpp
 )
-# qt_add_resources(QmlApp "icons"
-#     PREFIX "/icons"
-#     FILES
-        
-#         Resources/icons/home.svg
-#         Resources/icons/print.svg
-#         Resources/icons/qr_code_scanner.svg
-#         Resources/icons/info.svg
-#         Resources/icons/templates.svg
-#         Resources/icons/back.svg
-# )
 
 
 qt_add_qml_module(QmlApp
-    URI ZXing
+    URI ${CMAKE_PROJECT_NAME}URI
     VERSION 1.0
     
 
 
-        QML_FILES main.qml
-                    TemplateConfiguration.qml
-                    MainPage.qml
-                    MainMenuSideBar.qml
-                    TemplatesSideBar.qml
-                    TemplateProperties.qml
-                    TemplatePropertyRecognition.qml
-                    TemplatePropertyParse.qml   
-                    CustomListView.qml   
-                    CustomPageHeader.qml
-                    KeywordsConfiguration.qml
-                    PrintConfiguration.qml
-                    
-        SOURCES barcodeanalyzer.h barcodeanalyzer.cpp
-                 opencvimageprovider.h
-         barcodeanalyzer.h barcodeanalyzer.cpp
-         fullmaterialtemplate.h fullmaterialtemplate.cpp
-         barcodelist.h barcodelist.cpp
-         mybarcodeinfo.h mybarcodeinfo.cpp
-         printtemplate.h printtemplate.cpp
-         keywordtemplate.h keywordtemplate.cpp
-         MatchModel.h MatchModel.cpp
+        QML_FILES   qml/main.qml
+                    qml/TemplateConfiguration.qml
+                    qml/MainPage.qml
+                    qml/MainMenuSideBar.qml
+                    qml/CustomListView.qml   
+                    qml/CustomPageHeader.qml
+                    qml/KeywordsConfiguration.qml
+                    qml/PrintConfiguration.qml
+                    qml/TemplateMatchConditions.qml
+                    qml/printtable.qml
+                    qml/FieldTable.qml
+
+        SOURCES  
+         Core/Src/barcodeanalyzer.cpp
+         Core/Src/barcodelist.cpp
+         Core/Src/mybarcodeinfo.cpp
+         Core/Src/PersonModel.cpp
+         Core/Src/KeywordsModel.cpp
+         Core/Src/MatchModel.cpp
+         Core/Src/BarcodesModel.cpp
+                  Core/Src/FieldTableModel.cpp
+
+
+         Core/Include/barcodeanalyzer.h
+         Core/Include/barcodelist.h 
+         Core/Include/mybarcodeinfo.h 
+         Core/Include/PersonModel.h 
+         Core/Include/KeywordsModel.h 
+         Core/Include/MatchModel.h 
+         Core/Include/BarcodesModel.h 
+        Core/Include/FieldTableModel.h
+
          RESOURCES 
-            Resources/icons/back.svg
-            Resources/icons/home.svg
-            Resources/icons/info.svg
-            Resources/icons/print.svg
-            Resources/icons/settings.svg
-            Resources/icons/templates.svg
-            Resources/icons/qr_code_scanner.svg
-            Resources/icons/back_white.svg
-            Resources/icons/image_search.svg
-            Resources/icons/keywords.svg
-            Resources/icons/rule.svg
-            Resources/icons/history.svg
-                        Resources/icons/label.svg
-
-
-            
-
-
+            qml/Resources/icons/back.svg
+            qml/Resources/icons/home.svg
+            qml/Resources/icons/info.svg
+            qml/Resources/icons/print.svg
+            qml/Resources/icons/settings.svg
+            qml/Resources/icons/templates.svg
+            qml/Resources/icons/qr_code_scanner.svg
+            qml/Resources/icons/back_white.svg
+            qml/Resources/icons/image_search.svg
+            qml/Resources/icons/keywords.svg
+            qml/Resources/icons/rule.svg
+            qml/Resources/icons/history.svg
+            qml/Resources/icons/label.svg
 
 )
+
+
+
 
 
 target_link_libraries(QmlApp
     PRIVATE
         Qt6::Quick
         Qt6::Multimedia
+            Qt6::Qml
+
         ${OpenCV_LIBS}
         ZXing::ZXing
+        
 )
 
 target_include_directories(QmlApp PRIVATE
@@ -100,6 +107,11 @@ target_include_directories(QmlApp PRIVATE
     "C:/ZXing/lib"
     ${OpenCV_INCLUDE_DIRS}
     "C:/Qt/6.9.2/mingw_64/bin"
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Include
+    ${CMAKE_CURRENT_SOURCE_DIR}/qml
+        ${CMAKE_CURRENT_SOURCE_DIR}/Resources/icons
+
+        
 
 )
 
@@ -110,4 +122,7 @@ install(TARGETS QmlApp
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
+
+ 
+
 

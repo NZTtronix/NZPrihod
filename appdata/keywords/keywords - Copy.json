@@ -1,0 +1,44 @@
+{
+    "Keywords": [
+        {
+            "id": "[NULL]",
+            "name": "Not Used",
+            "enabled": true
+        },
+        {
+            "id": "[PN]",
+            "name": "Part Number",
+            "enabled": true
+        },
+        {
+            "id": "[DT]",
+            "name": "Date Time",
+            "enabled": true
+        },
+        {
+            "id": "[QTY]",
+            "name": "Quantity",
+            "enabled": true
+        },
+        {
+            "id": "[Footprint]",
+            "name": "Footprint",
+            "enabled": true
+        },
+        {
+            "id": "[Comment]",
+            "name": "Comment",
+            "enabled": true
+        },
+        {
+            "id": "[EM]",
+            "name": "Emasqwe",
+            "enabled": true
+        },
+        {
+            "id": "[]",
+            "name": "Not used",
+            "enabled": true
+        }
+    ]
+}

@@ -1,0 +1,27 @@
+{
+    "Match": [
+    ],
+    "barcodes": [
+        {
+            "angle": -93,
+            "area": 13685,
+            "centerX": 635,
+            "centerY": 415,
+            "content": "C0603FR-0710K2;5000;38C41607430087",
+            "height": 115,
+            "type": "QR Code",
+            "width": 119
+        },
+        {
+            "angle": -94,
+            "area": 5382,
+            "centerX": 701,
+            "centerY": 685,
+            "content": "C0603FR-0710K2",
+            "height": 69,
+            "type": "QR Code",
+            "width": 78
+        }
+    ],
+    "name": "unnamed"
+}

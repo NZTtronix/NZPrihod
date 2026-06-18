@@ -1,0 +1,84 @@
+{
+    "Match": [
+    ],
+    "barcodes": [
+        {
+            "angle": 0,
+            "area": 11324,
+            "centerX": 1685,
+            "centerY": 1351,
+            "content": "1PGCM21BR71H104KA37L",
+            "height": 19,
+            "type": "Code 39",
+            "width": 596
+        },
+        {
+            "angle": 0,
+            "area": 10850,
+            "centerX": 1564,
+            "centerY": 1435,
+            "content": "1TSC0209FC6",
+            "height": 31,
+            "type": "Code 39",
+            "width": 350
+        },
+        {
+            "angle": 0,
+            "area": 13255,
+            "centerX": 1502,
+            "centerY": 1165,
+            "content": "P760919",
+            "height": 55,
+            "type": "Code 39",
+            "width": 241
+        },
+        {
+            "angle": 0,
+            "area": 9858,
+            "centerX": 1477,
+            "centerY": 1266,
+            "content": "Q3000",
+            "height": 53,
+            "type": "Code 39",
+            "width": 186
+        },
+        {
+            "angle": 0,
+            "area": 4758,
+            "centerX": 1882,
+            "centerY": 1252,
+            "content": "V",
+            "height": 61,
+            "type": "Code 39",
+            "width": 78
+        }
+    ],
+    "name": "Murata",
+    "parsemodel": [
+        {
+            "dst": "NULL",
+            "length": 20,
+            "start": 0
+        },
+        {
+            "dst": "NULL",
+            "length": 10,
+            "start": 1
+        },
+        {
+            "dst": "NULL",
+            "length": -1,
+            "start": 2
+        },
+        {
+            "dst": "QTY",
+            "length": 4,
+            "start": 3
+        },
+        {
+            "dst": "NULL",
+            "length": 0,
+            "start": 1
+        }
+    ]
+}

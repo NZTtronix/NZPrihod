@@ -1,0 +1,17 @@
+{
+    "Match": [
+    ],
+    "barcodes": [
+        {
+            "angle": 90,
+            "area": 3645,
+            "centerX": 1405,
+            "centerY": 1080,
+            "content": "V",
+            "height": 45,
+            "type": "Code 39",
+            "width": 81
+        }
+    ],
+    "name": "unnamed"
+}

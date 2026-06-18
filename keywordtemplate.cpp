@@ -1,2 +1,0 @@
-#include "keywordtemplate.h"
-

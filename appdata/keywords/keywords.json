@@ -1,0 +1,34 @@
+{
+    "Keywords": [
+        {
+            "EnabledRole": true,
+            "IDRole": "DT",
+            "NameRole": "Date Time"
+        },
+        {
+            "EnabledRole": true,
+            "IDRole": "QTY",
+            "NameRole": "Quantity"
+        },
+        {
+            "EnabledRole": true,
+            "IDRole": "Comment",
+            "NameRole": "Comment"
+        },
+        {
+            "EnabledRole": true,
+            "IDRole": "PN",
+            "NameRole": "Part Number"
+        },
+        {
+            "EnabledRole": false,
+            "IDRole": "keyword ID2",
+            "NameRole": "keyword name2"
+        },
+        {
+            "EnabledRole": true,
+            "IDRole": "keyword ID",
+            "NameRole": "keyword name"
+        }
+    ]
+}
