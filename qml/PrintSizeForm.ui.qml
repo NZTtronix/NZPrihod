@@ -28,6 +28,7 @@ Rectangle {
 
     property alias widthMM: spinBoxWidth.value
     property alias heightMM: spinBoxHeight.value
+    
 
     ListModel {
         id: standartSizesModel

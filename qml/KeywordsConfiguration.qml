@@ -144,11 +144,7 @@ Page {
                         palette.button: "#101019"
 
                         hoverEnabled: false
-                        //     Label {
-                        //     x: (parent.width - width) / 2
-                        //     y: (parent.height - height) / 2
-                        //     // defaultColor: "white"
-                        //     color: "white"
+             
                              
                         icon.source: "qrc:/qt-project.org/imports/QtQuick/Controls/Basic/images/check.png"
                         icon.color:  checked? "white":"transparent"
@@ -157,9 +153,7 @@ Page {
                         background :Rectangle{
                             color:"#101019";
                         }
-                        //     visible: EnabledRole
-                        //     opacity: 1
-                        // }
+                     
 
 
                         text: ""

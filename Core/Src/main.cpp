@@ -7,7 +7,7 @@
 #include "PersonModel.h"
 #include "KeywordsModel.h"
 #include "BarcodesModel.h"
-#include "FieldTableModel.h"
+#include "FieldListModel.h"
 #include <QQmlContext>
 
 
@@ -15,7 +15,6 @@ int main(int argc, char *argv[])
 {   
     QGuiApplication  app(argc, argv);
     QQmlApplicationEngine engine;
-    QLOGGING_H
 
 
     qmlRegisterType<MatchModel>("MyComponents", 1, 0, "MatchModel");
@@ -26,11 +25,11 @@ int main(int argc, char *argv[])
     qmlRegisterType<EnabledProxyModel>("EnabledProxyModel", 1, 0, "EnabledProxyModel");
 
     qmlRegisterType<BarcodeAnalyzer>("Backend", 1, 0, "BarcodeAnalyzer");
-    qmlRegisterType<FieldTableModel>("FieldTableModel", 1, 0, "FieldTableModel");
-     FieldTableModel *model = new FieldTableModel(&app);
+    qmlRegisterType<FieldListModel>("FieldListModel", 1, 0, "FieldListModel");
+    FieldListModel *model = new FieldListModel(&app);
 
   
-engine.rootContext()->setContextProperty("fieldTableModel", model);
+    engine.rootContext()->setContextProperty("fieldListModel", model);
 
 
 

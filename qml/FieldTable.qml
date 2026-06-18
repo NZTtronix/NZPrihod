@@ -1,15 +1,20 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.15
+import QtQuick.Layouts 2.15
 import QtQuick.Window 2.15
-
+// import FieldListModel 1.0
 Window {
-    id: window
-    width: 1300
-    height: 600
+    id: root
+    width: 1500
+    height: 900
     visible: true
     title: "Field Table Model"
 
+       
+
+
+
+    
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 10
@@ -34,259 +39,193 @@ Window {
                 border.width: 1
                 radius: 4
 
-                TableView {
-                    id: tableView
+                ListView {
+                    id: listView
                     anchors.fill: parent
                     anchors.margins: 1
 
-                    model: fieldTableModel
-                    clip: true
-                    columnSpacing: 1
-                    rowSpacing: 1
-                    selectionModel: ItemSelectionModel {}
-
+                    model: fieldListModel
                     delegate: Rectangle {
-                        required property bool selected
-                        required property bool current
-                        implicitHeight: 40
-
-                        border.color: "#e0e0e0"
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        height: 25
+                        color: ListView.isCurrentItem ? "#203030" : "#101019"
                         border.width: 1
-                        color: current ? "white" : "lightgray"
+                        border.color: "grey"
 
-                        property int columnIndex: column
-
-                        TextInput {
-                            id: cellInput
+                        MouseArea {
                             anchors.fill: parent
-                            anchors.margins: 6
-                            readOnly: false
-                            text: {
-                                var item = fieldTableModel.getItem(row);
-                                if (!item)
-                                    return "";
-                                if (columnIndex < 4) {
-                                    var key = ["X", "Y", "width", "height"][columnIndex];
-                                    var v = item[key];
-                                    return (typeof v === "number") ? v.toFixed(2) : (v !== undefined ? v : "0.00");
-                                } else {
-                                    var key = (columnIndex === 4) ? "content" : "codeType";
-                                    return item[key] !== undefined ? item[key] : "";
-                                }
-                            }
-
-                            verticalAlignment: Text.AlignVCenter
-                            horizontalAlignment: columnIndex < 4 ? Text.AlignHCenter : Text.AlignLeft
-                            // readOnly: true
-                            color: "#333333"
-                            font.pixelSize: 12
-
-                            MouseArea {
-                                anchors.fill: parent
-                                acceptedButtons: Qt.LeftButton
-                                onDoubleClicked: {
-                                    cellInput.readOnly = false;
-                                    cellInput.selectAll();
-                                    cellInput.forceActiveFocus();
-                                    var idx = fieldTableModel.index(row, columnIndex);
-                                    tableView.selectionModel.setCurrentIndex(idx, 1);
-                                }
-                            }
-
-                            onEditingFinished: {
-                                if (!readOnly) {
-                                    var value = text;
-                                    if (columnIndex < 4)
-                                        value = parseFloat(text) || 0;
-                                    var idx = fieldTableModel.index(row, columnIndex);
-                                    fieldTableModel.setData(idx, value, Qt.EditRole);
-                                    // readOnly = true;
-                                }
-                            }
-
-                            Keys.onEscapePressed: {
-                                // readOnly = true;
-                                // revert text
-                                cellInput.text = (function () {
-                                        var it = fieldTableModel.getItem(row);
-                                        if (!it)
-                                            return "";
-                                        if (columnIndex < 4) {
-                                            var k = ["X", "Y", "width", "height"][columnIndex];
-                                            var vv = it[k];
-                                            return (typeof vv === "number") ? vv.toFixed(2) : vv;
-                                        } else {
-                                            var k = (columnIndex === 4) ? "content" : "codeType";
-                                            return it[k] || "";
-                                        }
-                                    })();
-                            }
-
-                            onActiveFocusChanged: {
-                                if (activeFocus) {
-                                    var idx = tableView.model.index(row, columnIndex);
-                                    console.log("index is:" + idx);
-                                    tableView.selectionModel.select(idx, tableView.selectionModel.Select | tableView.selectionModel.Clear);
-                                }
+                            onClicked: {
+                                listView.currentIndex = index;
                             }
                         }
-
-                        Rectangle {
-                            anchors.fill: parent
-                            color: "transparent"
-                            border.color: (tableView.selectionModel.currentIndex.row === row && tableView.selectionModel.currentIndex.column === columnIndex) ? '#9ec5e5' : "transparent"
-                            border.width: 2
+                        GridLayout {
+                            columns: 4
+                            columnSpacing: 10
+                            rowSpacing: 10
+                            RowLayout {
+                                Layout.preferredWidth: 100
+                                Layout.preferredHeight: 20
+                                TextField {
+                                    text: X
+                                    Layout.preferredWidth: 100
+                                    Layout.preferredHeight: 20
+                                    color: "white"
+                                    background: Rectangle {
+                                        color: "transparent"
+                                        border.width: 1
+                                        border.color: "grey"
+                                    }
+                                    onEditingFinished: X = text
+                                }
+                                TextField {
+                                    text: Y
+                                    Layout.preferredWidth: 100
+                                    Layout.preferredHeight: 20
+                                    color: "white"
+                                    background: Rectangle {
+                                        color: "transparent"
+                                        border.width: 1
+                                        border.color: "grey"
+                                    }
+                                    onEditingFinished: Y = text
+                                }
+                                TextField {
+                                    text: model.width
+                                    Layout.preferredWidth: 100
+                                    Layout.preferredHeight: 20
+                                    color: "white"
+                                    background: Rectangle {
+                                        color: "transparent"
+                                        border.width: 1
+                                        border.color: "grey"
+                                    }
+                                    onEditingFinished: model.width = text
+                                }
+                                TextField {
+                                    text: model.height
+                                    Layout.preferredWidth: 100
+                                    Layout.preferredHeight: 20
+                                    color: "white"
+                                    background: Rectangle {
+                                        color: "transparent"
+                                        border.width: 1
+                                        border.color: "grey"
+                                    }
+                                    onEditingFinished: model.height = text
+                                }
+                                TextField {
+                                    text: codeType
+                                    Layout.preferredWidth: 100
+                                    Layout.preferredHeight: 20
+                                    color: "white"
+                                    background: Rectangle {
+                                        color: "transparent"
+                                        border.width: 1
+                                        border.color: "grey"
+                                    }
+                                    onEditingFinished: codeType = text
+                                }
+                                TextField {
+                                    text: content
+                                    Layout.preferredWidth: 100
+                                    Layout.preferredHeight: 20
+                                    color: "white"
+                                    background: Rectangle {
+                                        color: "transparent"
+                                        border.width: 1
+                                        border.color: "grey"
+                                    }
+                                    onEditingFinished: content = text
+                                }
+                            }
                         }
                     }
                 }
             }
+            
 
-            // Rectangle {
-            //     id: canvas
-            //     Layout.fillWidth: true
-            //     Layout.fillHeight: true
-            //     color: "white"
-            //     border.color: "#ccc"
-            //     border.width: 1
-            //     radius: 4
 
-            //     property var canvasItems: []
 
-            //     function createCanvasRect(map) {
-            //         var obj = canvasItemComponent.createObject(canvas);
+    Rectangle {
+        property var pixelDensity: Screen.pixelDensity
 
-            //         //                     // var qml = 'import QtQuick 2.15; Rectangle { x:' + (map.X || 0) +  color:"#2196F3"; opacity:0.8; border.width:2; border.color:"#1976D2"; radius:4; ' + 'Text { anchors.centerIn: parent; text: "' + (map.content || "") + '"; color:"white"; font.pixelSize:10 } }';
-            //         // var qml =
-            //         // 'import QtQuick 2.15; Rectangle { ' +
-            //         // ' x:' + (map.X || 0) + '; y:' + (map.Y || 0) + '; width:' + (map.width || 20) + '; height:' + (map.height || 20) + '; color:"#2196F3"; opacity:0.8; border.width:2; border.color:"#1976D2"; radius:4; ' +
-            //         // ' property int modelIndex: ' + (map._modelIndex !== undefined ? map._modelIndex : -1) + ';' +
-            //         // ' MouseArea { anchors.fill: parent; cursorShape: Qt.OpenHandCursor; onPressed: cursorShape = Qt.ClosedHandCursor; onReleased: cursorShape = Qt.OpenHandCursor; drag.target: parent; onPositionChanged: { if (parent.modelIndex >= 0) { try { fieldTableModel.set(parent.modelIndex, { X: Math.round(parent.x), Y: Math.round(parent.y) }); } catch(e) {} } } onDragged: { /* optional continuous drag hook */ } onDragFinished: { if (parent.modelIndex >= 0) { try { fieldTableModel.set(parent.modelIndex, { X: Math.round(parent.x), Y: Math.round(parent.y) }); } catch(e) {} } } } ' +
-            //         // ' Text { anchors.centerIn: parent; text: "' + (map.content || "") + '"; color:"white"; font.pixelSize:10 }' +
-            //         // '}';
-            //         //                     var obj = Qt.createQmlObject(qml, canvas, "dynamicCanvasItem");
-            //         // var comp = Qt.createComponent("CanvasItem.qml");
+        PrintSizeForm{
+            id: printSizeForm
+            
+        }
+        
+        id: canvas
+        implicitWidth: printSizeForm.widthMM* pixelDensity
+        implicitHeight: printSizeForm.heightMM * pixelDensity
+        property var canvasItems: []
+        color: "white"
+        border.color: "#ccc"
+        border.width: 1
+        radius: 4
 
-            //         return obj;
-            //     }
+        Repeater {
+            id: repeater
+            model: fieldListModel
+            delegate: Item {
+                id: marker
+                property int modelRow: index
+                width: model.width    // роли width,height
+                height: model.height
+                x: model.X
+                y: model.Y
+                
+                // отобразить SVG/контент
+                Image {
+                        anchors.fill: parent
+                        id: svgImage
+                        source: fieldListModel.GenerateBarcode(modelRow, model.content, model.codetype);   // либо сформируйте путь по codeType
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                }
+                
 
-            //     Component.onCompleted: {
-            //         // init existing items
-            //         for (var r = 0; r < fieldTableModel.rowCount(); ++r) {
-            //             var m = fieldTableModel.getItem(r);
-            //             canvas.canvasItems.push(createCanvasRect(m));
-            //         }
+                // Rectangle {
+                //     anchors.fill: parent
+                //     border.width: 1
+                //     border.color: "green"
+                //     color: (model.index.row() == modelRow)?'#c41dec8f': '#b75d8171';
+                //     Label {
+                //         text: model.content
+                //         anchors.centerIn:parent
 
-            //         fieldTableModel.rowsInserted.connect(function (parent, first, last) {
-            //             for (var i = first; i <= last; ++i) {
-            //                 var m = fieldTableModel.getItem(i);
-            //                 var obj = createCanvasRect(m);
-            //                 canvas.canvasItems.splice(i, 0, obj);
-            //             }
-            //         });
+                //     }
+                // }
 
-            //         fieldTableModel.rowsRemoved.connect(function (parent, first, last) {
-            //             var count = last - first + 1;
-            //             var removed = canvas.canvasItems.splice(first, count);
-            //             for (var j = 0; j < removed.length; ++j)
-            //                 removed[j].destroy();
-            //         });
+                MouseArea {
+                    anchors.fill: parent
+                    drag.target: marker
+                    drag.axis: Drag.XAndYAxis
 
-            //         fieldTableModel.dataChanged.connect(function (topLeft, bottomRight, roles) {
-            //             var r0 = topLeft.row;
-            //             var r1 = bottomRight.row;
-            //             for (var rr = r0; rr <= r1; ++rr) {
-            //                 var m = fieldTableModel.getItem(rr);
-            //                 var obj = canvas.canvasItems[rr];
-            //                 if (obj) {
-            //                     obj.x = m.X;
-            //                     obj.y = m.width !== undefined ? m.Y : m.Y;
-            //                     obj.width = m.width;
-            //                     obj.height = m.height;
-            //                     if (obj.children && obj.children.length > 0)
-            //                         obj.children[0].text = m.content;
-            //                 }
-            //             }
-            //         });
-            //     }
-            // }
-            Rectangle {
-                id: canvas
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                color: "white"
-                border.color: "#ccc"
-                border.width: 1
-                radius: 4
-
-                property var canvasItems: []
-
-                Component.onCompleted: {
-                    // Инициализация по существующим строкам
-                    for (var r = 0; r < fieldTableModel.rowCount(); ++r) {
-                        var m = fieldTableModel.getItem(r);
-                        var obj = canvasItemComponent.createObject(canvas, {
-                            x: m.X || m.XRole || 0,
-                            y: m.Y || m.YRole || 0,
-                            width: m.width || m.WidthRole || 20,
-                            height: m.height || m.HeightRole || 20,
-                            modelIndex: r
-                        });
-                        canvas.canvasItems.push(obj);
+                    onClicked: {
+                        listView.currentIndex = modelRow;
                     }
 
-                    // Обработка вставки строк
-                    fieldTableModel.rowsInserted.connect(function (parent, first, last) {
-                        for (var i = first; i <= last; ++i) {
-                            var m = fieldTableModel.getItem(i);
-                            var obj = canvasItemComponent.createObject(canvas, {
-                                x: m.X || m.XRole || 0,
-                                y: m.Y || m.YRole || 0,
-                                width: m.width || m.WidthRole || 20,
-                                height: m.height || m.HeightRole || 20,
-                                modelIndex: i
-                            });
-                            canvas.canvasItems.splice(i, 0, obj);
-                        }
-                        // скорректировать modelIndex для последующих объектов
-                        for (var k = 0; k < canvas.canvasItems.length; ++k)
-                            canvas.canvasItems[k].modelIndex = k;
-                    });
+                    onPositionChanged: {
+                    // при текучем перемещении можно обновлять визуал без записи в модель
+                    }
 
-                    // Удаление строк
-                    fieldTableModel.rowsRemoved.connect(function (parent, first, last) {
-                        var count = last - first + 1;
-                        var removed = canvas.canvasItems.splice(first, count);
-                        for (var j = 0; j < removed.length; ++j)
-                            removed[j].destroy();
-                        // скорректировать modelIndex для последующих объектов
-                        for (var k = 0; k < canvas.canvasItems.length; ++k)
-                            canvas.canvasItems[k].modelIndex = k;
-                    });
-
-                    // Обновления данных в моделях (dataChanged сигнал)
-                    fieldTableModel.dataChanged.connect(function (topLeft, bottomRight, roles) {
-                        var r0 = topLeft.row;
-                        var r1 = bottomRight.row;
-                        for (var rr = r0; rr <= r1; ++rr) {
-                            var m = fieldTableModel.getItem(rr);
-                            var obj = canvas.canvasItems[rr];
-                            if (obj && m) {
-                                if (m.X !== undefined)
-                                    obj.x = m.X;
-                                if (m.Y !== undefined)
-                                    obj.y = m.Y;
-                                if (m.width !== undefined)
-                                    obj.width = m.width;
-                                if (m.height !== undefined)
-                                    obj.height = m.height;
-                                if (m.content !== undefined && obj.children && obj.children.length > 0)
-                                    obj.children[0].text = m.content;
-                            }
-                        }
-                    });
+                    onReleased: {
+                    // Обновляем модель через удобный инвокейбл
+                    fieldListModel.updatePosition(modelRow, marker.x, marker.y)
+                    }
                 }
+
+            // Ограничение движения внутри canvas
+            onXChanged: { if (x < 0) x = 0; if (x + width > canvas.width) x = canvas.width - width }
+            onYChanged: { if (y < 0) y = 0; if (y + height > canvas.height) y = canvas.height - height }
+
+            
             }
         }
+    }
+            
+    }
 
         RowLayout {
             Layout.fillWidth: true
@@ -295,23 +234,19 @@ Window {
             Button {
                 text: "➕ Add Row"
                 Layout.preferredWidth: 150
-                onClicked: fieldTableModel.addRow()
+                onClicked: {
+                    fieldListModel.addEmptyItem();
+
+                    rowCounter.text = "Total rows: " + fieldListModel.rowCount();
+                }
             }
 
             Button {
                 text: "🗑️ Remove Selected"
                 Layout.preferredWidth: 200
-                enabled: tableView.currentIndex.isValid
                 onClicked: {
-                    fieldTableModel.removeRow(tableView.selectionModel.currentIndex.row);
-
-                    // if (tableView.selectionModel.currentIndex.isValid()) {
-                    //     var r = tableView.selectionModel.currentIndex;
-                    //     console.log("tableView.selectionModel.currentIndex is "+ tableView.selectionModel.currentIndex)
-
-                    //     fieldTableModel.removeRow(r);
-
-                    // }
+                    fieldListModel.deleteItem(listView.currentIndex);
+                    rowCounter.text = "Total rows: " + fieldListModel.rowCount();
                 }
             }
 
@@ -326,7 +261,8 @@ Window {
             }
 
             Text {
-                text: "Total rows: " + fieldTableModel.rowCount()
+                id: rowCounter
+                text: "Total rows: " + fieldListModel.rowCount()
                 font.pixelSize: 14
             }
         }
@@ -355,22 +291,8 @@ Window {
                     spacing: 30
 
                     Text {
-                        text: "Selected Row: " + (tableView.selectionModel.currentIndex.row + 1)
+                        text: "Selected Row: " + (listView.currentIndex + 1)
                         font.pixelSize: 12
-                    }
-
-                    Text {
-                        text: {
-                            var columns = ["X", "Y", "Width", "Height", "Content", "Code Type"];
-                            return "Selected Column: " + (columns[tableView.selectionModel.currentIndex.column]);
-                        }
-                        font.pixelSize: 12
-                    }
-
-                    Text {
-                        text: "Double-click to edit cell"
-                        font.pixelSize: 12
-                        color: "#666666"
                     }
                 }
             }
@@ -413,89 +335,12 @@ Window {
                     horizontalAlignment: Text.AlignHCenter
                 }
                 onClicked: {
-                    fieldTableModel.clear();
+                    // fieldListModel.clear();
                     clearDialog.close();
                 }
             }
         }
     }
 
-    Component {
-        id: canvasItemComponent
-
-        Rectangle {
-            id: rect
-            property int modelIndex: -1
-
-            width: (rect.modelIndex >= 0 ? fieldTableModel.getItem(rect.modelIndex).WidthRole || fieldTableModel.getItem(rect.modelIndex).width || fieldTableModel.getItem(rect.modelIndex).width : 20)
-            height: (rect.modelIndex >= 0 ? fieldTableModel.getItem(rect.modelIndex).HeightRole || fieldTableModel.getItem(rect.modelIndex).height || fieldTableModel.getItem(rect.modelIndex).height : 20)
-            x: (rect.modelIndex >= 0 ? fieldTableModel.getItem(rect.modelIndex).XRole || fieldTableModel.getItem(rect.modelIndex).X || fieldTableModel.getItem(rect.modelIndex).x : 10)
-            y: (rect.modelIndex >= 0 ? fieldTableModel.getItem(rect.modelIndex).YRole || fieldTableModel.getItem(rect.modelIndex).Y || fieldTableModel.getItem(rect.modelIndex).y : 10)
-
-            color: "#242578"
-            radius: 4
-            border.width: 2
-            border.color: "#1e2250"
-            opacity: 0.9
-
-            Text {
-                anchors.centerIn: parent
-                text: (rect.modelIndex >= 0 ? fieldTableModel.getItem(rect.modelIndex).ContentRole || fieldTableModel.getItem(rect.modelIndex).content || "" : "")
-                color: "white"
-                font.pixelSize: 12
-            }
-
-            MouseArea {
-                id: dragArea
-                anchors.fill: parent
-                drag.target: parent
-                cursorShape: Qt.OpenHandCursor
-                onPressed: cursorShape = Qt.ClosedHandCursor
-
-                // Обновляем модель при движении (live) — можно убрать для записи только по завершению
-                onPositionChanged: {
-
-                    // if (rect.modelIndex >= 0) {
-
-                    //     var idx = rect.modelIndex;
-                    //     // формируем QModelIndex на стороне QML через стандартный вызов setData(model.index(row, column), value, role)
-                    //     // В QML у модели есть метод setData(index, value, role) — доступен, если модель предоставляет интерфейс QAbstractItemModel.
-                    //     // Здесь создаём индекс через model.index(row, 0)
-                    //     try {
-                    //         var modelIndex = fieldTableModel.index(idx, 0);
-                    //         fieldTableModel.setFieldXY(rect.modelIndex, Math.round(rect.x), Math.round(rect.y));
-                    //         fieldTableModel.setFieldXY(rect.modelIndex, Math.round(rect.x), Math.round(rect.y));
-
-                    //     } catch (e) {
-                    //         // если setData/index недоступны напрямую, можно вызвать Q\_INVOKABLE wrapper в модели или использовать getItem+custom setter
-                    //         console.log("Model update failed:", e);
-                    //     }
-                    // }
-                }
-
-                // Гарантированная финальная запись после перетаскивания
-                onReleased: {
-                    console.log("onReleasedCalled");
-
-                    cursorShape = Qt.OpenHandCursor;
-
-                    if (rect.modelIndex >= 0) {
-                        try {
-                            var idx = fieldTableModel.index(rect.modelIndex, 0);
-                            fieldTableModel.setFieldXY(rect.modelIndex, Math.round(rect.x), Math.round(rect.y));
-                            fieldTableModel.setFieldXY(rect.modelIndex, Math.round(rect.x), Math.round(rect.y));
-
-                            console.log(idx);
-                            console.log(Math.round(rect.x), Math.round(rect.y));
-                        } catch (e) {
-                            console.log("final update failed:", e);
-                        }
-                    }
-                }
-            }
-
-            // Drag.hotSpot.y: 10
-            // Drag.hotSpot.x: 10
-        }
-    }
+    
 }

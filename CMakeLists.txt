@@ -47,6 +47,8 @@ qt_add_qml_module(QmlApp
                     qml/TemplateMatchConditions.qml
                     qml/printtable.qml
                     qml/FieldTable.qml
+                    qml/PrintSizeForm.ui.qml
+
 
         SOURCES  
          Core/Src/barcodeanalyzer.cpp
@@ -56,7 +58,7 @@ qt_add_qml_module(QmlApp
          Core/Src/KeywordsModel.cpp
          Core/Src/MatchModel.cpp
          Core/Src/BarcodesModel.cpp
-                  Core/Src/FieldTableModel.cpp
+                  Core/Src/FieldListModel.cpp
 
 
          Core/Include/barcodeanalyzer.h
@@ -66,7 +68,7 @@ qt_add_qml_module(QmlApp
          Core/Include/KeywordsModel.h 
          Core/Include/MatchModel.h 
          Core/Include/BarcodesModel.h 
-        Core/Include/FieldTableModel.h
+        Core/Include/FieldListModel.h
 
          RESOURCES 
             qml/Resources/icons/back.svg
