@@ -1,0 +1,20 @@
+{
+    "FieldItems": [
+        {
+            "CodeTypeRole": "QRCode",
+            "ContentRole": "null",
+            "HeightRole": 150,
+            "WidthRole": 150,
+            "XRole": 21,
+            "YRole": 9
+        },
+        {
+            "CodeTypeRole": "QRCode",
+            "ContentRole": "null",
+            "HeightRole": 150,
+            "WidthRole": 150,
+            "XRole": 182,
+            "YRole": 68
+        }
+    ]
+}

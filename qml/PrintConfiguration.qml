@@ -2,721 +2,313 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
 import MyComponents 1.0
-import Backend 1.0
-
-
-
-
+import FieldListModel 1.0
 
 Page {
     id: root
+    function onBackClicked() {
+        console.log("back clicked:");
+        root.stackViewId.popCurrentItem();
+    }
+    function onItemClicked(itemName) {
+        console.log("Clicked at ", itemName);
+        chosenLabelTemplate = itemName;
+        fieldListModel.loadFromJson(root.printLabelsPath + root.chosenLabelTemplate + ".json");
 
-    // TemplateMatchConditions{}
+        fieldListAndCanvasRect.visible = true;
+
+        var params = {
+            fieldListModelID: fieldListModel,
+            chosenLabelTemplate: root.chosenLabelTemplate,
+            printLabelsPath: root.printLabelsPath
+        };
+        var obj = fieldsAndCanvasComponent.createObject(stackViewfieldListAndCanvasRect, params);
+        if (!obj)
+            console.log("creation failed:", fieldsAndCanvasComponent.errorString());
+        else {
+            console.log("created:", obj);
+            stackViewfieldListAndCanvasRect.replaceCurrentItem(obj); // или push/insert в StackView
+        }
+    }
+
     property var headerText
     property var barcodeAnalyzerId
     property var stackViewId
-
-}
-//     Rectangle{
-//         id: PrintingField
-//         implicitHeight: 100
-//         implicitWidth: 100
-//     }
-
-//     ListModel{
-//         id: paperFormatModel
-//         ListElement {
-//             format: "A4"
-//             width: 210
-//             height: 297 
-//         }
-//         ListElement {
-//             format: "A4"
-//             width: 210
-//             height: 297 
-//         }
-        
-//     }    
-
-//     RowLayout{
-
-//                 Item {
-//                         Layout.preferredWidth: 100
-//                         Layout.preferredHeight: 40
-//                         ColumnLayout {
-//                             Layout.preferredWidth: 100
-//                             Layout.preferredHeight: 20
-
-//                             CheckBox {
-//                                 id: minlen_cb
-//                                 checked: MatchMinLengthRole
-
-//                                 onCheckedChanged: {
-//                                     MatchMinLengthRole = checked;
-//                                     if (!checked)
-//                                         minLen_box.value = 0;
-//                                 }
-//                                 hoverEnabled: false
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                 }
-//                                 text: ": Custom XY"
-//                             }
-
-//                             RowLayout {
-//                                 SpinBox {
-//                                 // anchors.top:minlen_cb.bottom
-//                                 id: xxxxxx
-                                
-//                                 Layout.preferredWidth: 50
-//                                 Layout.preferredHeight: 20
-//                                 // anchors.top: splitPart_l.bottom
-//                                 from: 0
-//                                 to: 1000
-//                                 value: MinLengthRole
-//                                 onValueChanged: MinLengthRole = value
-//                                 stepSize: 1
-//                             }
-//                                 SpinBox {
-//                                     // anchors.top:minlen_cb.bottom
-                                    
-                                    
-//                                     Layout.preferredWidth: 50
-//                                     Layout.preferredHeight: 20
-//                                     // anchors.top: splitPart_l.bottom
-//                                     from: 0
-//                                     to: 1000
-//                                     value: MinLengthRole
-//                                     onValueChanged: MinLengthRole = value
-//                                     stepSize: 1
-//                                 }
-//                             }
-
-                            
-//                         }
-//                     }
-
-
-// Item {
-//                         Layout.preferredWidth: 100
-//                         Layout.preferredHeight: 40
-//                         ColumnLayout {
-//                             Layout.preferredWidth: 100
-//                             Layout.preferredHeight: 20
-
-//                             CheckBox {
-//                                 id: minlen_cb
-//                                 checked: MatchMinLengthRole
-
-//                                 onCheckedChanged: {
-//                                     MatchMinLengthRole = checked;
-//                                     if (!checked)
-//                                         minLen_box.value = 0;
-//                                 }
-//                                 hoverEnabled: false
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                 }
-//                                 text: ": Custom XY"
-//                             }
-//                             ComboBox {
-//                                 id: comboboxFormat
-//                                 Layout.preferredWidth: 100
-//                                 Layout.preferredHeight: 20
-
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                     border.width: 1
-//                                     border.color: "grey"
-//                                 }
-//                                 model: paperFormatModel
-
-//                                 palette.windowText: "white"
-//                                 displayText: modelData
-//                                 textRole: "IdxRole"
-//                                 onActivated: {
-//                                     CodeIDRole = currentText;
-//                                     // CodeTypeRole = barcodesListModel.data()
-
-//                                 }
-//                             }
-
-                           
-
-                            
-//                         }
-//                     }
-
-    
-    
-    
-//     }
-
-        
-
-
-
-
-
-
-
-    
-
-
-
-//  Rectangle {
-//         id: rectMatch
-//         anchors.left: rectReco.right
-//         anchors.leftMargin: 50
-//         y: 0
-//         width: 450
-//         anchors.bottom: parent.bottom
-//         anchors.top: rectBarcodes.bottom
-        
-//         anchors.bottomMargin: 100
-//         color: "transparent"
-//         visible: true
-
-      
-//         ListView {
-//             id: listView
-//             anchors.fill: parent
-//             anchors.bottomMargin: 100
-//             model: matchModel
-//             spacing: 30
-
-            
-//             ScrollBar.vertical: ScrollBar {
-//                 parent: listView.parent
-//                 anchors.top: listView.top
-//                 anchors.left: listView.right
-//                 anchors.bottom: listView.bottom
-//             }
-            
-//             delegate: Rectangle {
-//                 anchors.left: parent.left
-//                 anchors.right: parent.right
-//                 height: 150
-//                 color: ListView.isCurrentItem ? "#203030" : "#101019"
-//                 border.width: 1;
-//                 border.color: "grey"
-
-//                 MouseArea {
-//                     anchors.fill: parent
-//                     onClicked: {
-//                         listView.currentIndex = index;
-//                     }
-//                 }
-//                 GridLayout {
-//                     columns: 4
-//                     columnSpacing: 10
-//                     rowSpacing: 10
-
-//                     Item {
-
-//                         Layout.preferredWidth: 100
-//                         Layout.preferredHeight: 40
-
-//                         ColumnLayout {
-
-//                             Layout.preferredWidth: 100
-//                             Layout.preferredHeight: 20
-//                             spacing: 0
-//                             Label {
-//                                 Layout.preferredWidth: 100
-//                                 Layout.preferredHeight: 20
-//                                 text: "Barcode ID:"
-//                             }
-//                             ComboBox {
-//                                 id: comboboxid
-//                                 Layout.preferredWidth: 100
-//                                 Layout.preferredHeight: 20
-
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                     border.width: 1
-//                                     border.color: "grey"
-//                                 }
-//                                 model: barcodesModel
-
-//                                 palette.windowText: "white"
-//                                 displayText: "Barcode ID: " + CodeIDRole
-//                                 textRole: "IdxRole"
-//                                 onActivated: {
-//                                     CodeIDRole = currentText;
-//                                     // CodeTypeRole = barcodesListModel.data()
-
-//                                 }
-//                             }
-//                         }
-//                     }
-//                     Item {
-
-//                         Layout.preferredWidth: 100
-//                         Layout.preferredHeight: 40
-
-//                         ColumnLayout {
-
-//                             Layout.preferredWidth: 100
-//                             Layout.preferredHeight: 20
-//                             spacing: 0
-//                             Label {
-//                                 Layout.preferredWidth: 100
-//                                 Layout.preferredHeight: 20
-//                                 text: "keyword"
-//                             }
-//                             ComboBox {
-//                                 id: combobox
-//                                 Layout.preferredWidth: 100
-//                                 Layout.preferredHeight: 20
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                     border.width: 1
-//                                     border.color: "grey"
-//                                 }
-//                                 model: enabledKeywords
-//                                 palette.windowText: "white"
-//                                 displayText: KeywordRole
-//                                 textRole: "IDRole"
-//                                 onActivated: {
-//                                     KeywordRole = currentText;
-//                                 }
-//                             }
-//                         }
-//                     }
-
-//                     Item {
-
-//                         Layout.preferredWidth: 100
-//                         Layout.preferredHeight: 40
-
-//                         ColumnLayout {
-
-//                             Layout.preferredWidth: 100
-//                             Layout.preferredHeight: 20
-//                             spacing: 0
-//                             CheckBox {
-//                                 id: checkCodeTypeBox
-//                                 checked: CheckCodeTypeRole
-//                                 Layout.preferredWidth: 100
-//                                 Layout.preferredHeight: 20
-//                                 onCheckedChanged: CheckCodeTypeRole = checked
-//                                 hoverEnabled: false
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                     // border.width: 1
-//                                     // border.color: "grey"
-//                                 }
-
-//                                 text: ": Match type"
-//                             }
-//                             TextField {
-//                                 text: CodeTypeRole
-//                                 Layout.preferredWidth: 100
-//                                 Layout.preferredHeight: 20
-//                                 color: "white"
-//                                 visible: checkCodeTypeBox.checked
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                     border.width: 1
-//                                     border.color: "grey"
-//                                 }
-//                                 enabled: checkCodeTypeBox.checked
-//                                 onEditingFinished: CodeTypeRole = text
-//                             }
-//                         }
-//                     }
-
-//                     Item {
-
-//                         Layout.preferredWidth: 100
-//                         Layout.preferredHeight: 40
-
-//                         ColumnLayout {
-//                             CheckBox {
-//                                 id: matchStartBox
-//                                 checked: MatchStartRole
-//                                 Layout.preferredWidth: 100
-//                                 Layout.preferredHeight: 20
-//                                 onCheckedChanged: MatchStartRole = checked
-//                                 hoverEnabled: false
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                     // border.width: 1
-//                                     // border.color: "grey"
-//                                 }
-//                                 text: ": Match start"
-//                             }
-//                             TextField {
-//                                 text: StartTextRole
-//                                 Layout.preferredWidth: 100
-//                                 Layout.preferredHeight: 20
-//                                 color: "white"
-//                                 placeholderText: "start text"
-//                                 placeholderTextColor: "grey"
-//                                 visible: matchStartBox.checked
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                     border.width: 1
-//                                     border.color: "grey"
-//                                 }
-//                                 onEditingFinished: StartTextRole = text
-//                             }
-//                             Layout.preferredWidth: 100
-//                             Layout.preferredHeight: 20
-//                             spacing: 0
-//                         }
-//                     }
-
-//                     Item {
-
-//                         Layout.preferredWidth: 100
-//                         Layout.preferredHeight: 40
-
-//                         ColumnLayout {
-//                             Layout.preferredWidth: 100
-//                             Layout.preferredHeight: 20
-//                             spacing: 0
-
-//                             CheckBox {
-//                                 id: matchEndBox
-//                                 checked: MatchEndRole
-//                                 Layout.preferredWidth: 100
-//                                 Layout.preferredHeight: 20
-
-//                                 onCheckedChanged: MatchEndRole = checked
-//                                 hoverEnabled: false
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                     // border.width: 1
-//                                     // border.color: "grey"
-//                                 }
-//                                 text: ": Match end"
-//                             }
-//                             TextField {
-//                                 text: EndTextRole
-//                                 Layout.preferredWidth: 100
-//                                 Layout.preferredHeight: 20
-//                                 placeholderText: "end text"
-//                                 placeholderTextColor: "#3f3f3f"
-
-//                                 color: "white"
-//                                 visible: matchEndBox.checked
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                     border.width: 1
-//                                     border.color: "grey"
-//                                 }
-//                                 onEditingFinished: EndTextRole = text
-//                             }
-//                         }
-//                     }
-
-//                     Item {
-
-//                         Layout.preferredWidth: 100
-//                         Layout.preferredHeight: 40
-
-//                         ColumnLayout {
-//                             Layout.preferredWidth: 100
-//                             Layout.preferredHeight: 20
-//                             spacing: 0
-
-//                             CheckBox {
-//                                 id: matchMiddleBox
-//                                 checked: MatchMiddleRole
-//                                 Layout.preferredWidth: 100
-//                                 Layout.preferredHeight: 20
-//                                 onCheckedChanged: MatchMiddleRole = checked
-//                                 hoverEnabled: false
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                 }
-//                                 text: ": match middle"
-//                             }
-//                             TextField {
-//                                 text: MiddleTextRole
-//                                 visible: matchMiddleBox.checked
-//                                 Layout.preferredWidth: 100
-//                                 Layout.preferredHeight: 20
-//                                 placeholderText: "middle text"
-//                                 placeholderTextColor: "#3f3f3f"
-//                                 color: "white"
-//                                 enabled: matchMiddleBox.checked
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                     border.width: 1
-//                                     border.color: "grey"
-//                                 }
-//                                 onEditingFinished: MiddleTextRole = text
-//                             }
-//                         }
-//                     }
-
-//                     Item {
-//                         Layout.preferredWidth: 100
-//                         Layout.preferredHeight: 40
-//                         ColumnLayout {
-//                              Layout.preferredWidth: 100
-//                         Layout.preferredHeight: 20
-//                         Label {
-//                             id: substring_start
-//                             text: "substring start"
-//                         }
-
-//                         SpinBox {
-//                             id: substringstartbox
-//                              Layout.preferredWidth: 100
-//                         Layout.preferredHeight: 20
-
-//                             from: -1
-//                             to: 100
-//                             stepSize: 1
-//                             value: SubstringStartRole
-//                             onValueChanged: SubstringStartRole = value
-//                         }
-//                         }
-                        
-//                     }
-
-//                     Item {
-//                         Layout.preferredWidth: 100
-//                         Layout.preferredHeight: 40
-//                         ColumnLayout {
-//                             Layout.preferredWidth: 100
-//                             Layout.preferredHeight: 20
-
+    property var keywordsPath: "C:/projects/qt/QmlAppTest/appdata/keywords/keywords.json"
+    property var templatePath: "C:/projects/qt/QmlAppTest/appdata/templates/"
+    property var printLabelsPath: "C:/projects/qt/QmlAppTest/appdata/printlabels/"
+    property var chosenLabelTemplate
+    anchors.fill: parent
+    background: Rectangle {
+        color: "#4f8f8f"
+        opacity: 0.1
+    }
+    header: CustomPageHeader {
+        id: myHeader
+    }
+
+    palette {
+        // основное текстовое значение
+        dark: "#101019"
+
+        text: "white"
+        // дополнительные цвета (при необходимости)
+        buttonText: "white"
+        windowText: "white"
+        base: "transparent"
+        window: "transparent"
+        // фон окна (если нужно)
+        button: "transparent"
+    }
+
+    // FIELDLISTMODEL
+    FieldListModel {
+        id: fieldListModel
+    }
+    //LABEL TEMPLATES LIST SUBHEADER
+    ListModel {
+        id: labelsList
+    }
+    Rectangle {
+        id: subheader
+        width: 300
+        height: 100
+        x: 50
+        color: "transparent"
+        Column {
+            Row {
+                height: 65
+                width: 200
+                ItemDelegate {
+                    id: control
+                    icon.source: "Resources/icons/print.svg"
+                    icon.width: 40
+                    icon.height: 40
+                    icon.color: control.highlighted ? "white" : "white"
+                    display: ItemDelegate.IconOnly
+                    palette.windowText: "white"
+                    background: Rectangle {
+                        anchors.verticalCenter: parent.verticalCenter
+                        height: 0.6 * parent.height
+                        width: 5
+                        color: '#7fffff00'
+                        opacity: highlighted ? 0.5 : 0
+
+                        Rectangle {
+                            height: 80
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: root.menuWidth
+                            color: "white"
+                            opacity: highlighted ? 0.1 : 0
+                        }
+                    }
+                }
+                Text {
+                    text: "Label templates"
+                    width: 250
+                    wrapMode: Text.WordWrap
+                    font.pointSize: 20
+                    font.bold: true
+                    color: "white"
+                }
+            }
+            Text {
+                width: 300
+                color: "white"
+                wrapMode: Text.WordWrap
+                text: "Add a new label template or edit existing label templates"
+            }
+        }
+    }
+
+    //LABEL TEMPLATES LIST
+
+    Rectangle {
+        id: labelTemplatesListRect
+        width: 300
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.topMargin: 100
+        color: "transparent"
+
+        anchors.bottomMargin: 100
+        x: 50
+        y: 10
+        CustomListView {
+            id: customListView
+            marginsTop: 0
+            margins: 1
+            itemHeight: 40
+            itemWidth: 300
+            textColor: "white"
+            customListItemNames: root.barcodeAnalyzerId.getFolderJsonBasenames(root.printLabelsPath)
+        }
+
+        Column {
+            anchors.top: loadImageButton.top
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            height: customListView.itemHeight
+            width: parent.width
+            spacing: 1
+            Button {
+                id: addNewButton
+                height: 40
+                width: parent.width
+
+                background: Rectangle {
+                    width: customListView.itemWidth
+                    height: 40
+                    color: "#101019"
+                    Text {
+                        anchors.centerIn: parent
+                        text: "AddNew"
+                        color: "white"
+                        font.pointSize: 14
+                    }
+                }
+                onClicked: {
+                    console.log("clicked at AddNew");
+                    addNewDialog.open();
+                    // root.barcodeAnalyzerId.addNewEmptyPrintLabelJson(root.printLabelsPath);
+                    // fieldListModelID.addEmptyItem();
+                }
+            }
+            Button {
+                id: renameButton
+                height: 40
+
+                background: Rectangle {
+                    width: customListView.itemWidth
+                    height: 40
+                    color: "#101019"
+                    Text {
+                        anchors.centerIn: parent
+                        text: "Rename"
+                        color: "white"
+                        font.pointSize: 14
+                    }
+                }
+                onClicked: {
+                    console.log("clicked at renameButton");
+                }
+            }
+
+            Button {
+                id: removeButton
+                height: 40
+
+                background: Rectangle {
+                    width: customListView.itemWidth
+                    height: 40
+                    color: "#101019"
+                    Text {
+                        anchors.centerIn: parent
+                        text: "remove"
+                        color: "white"
+                        font.pointSize: 14
+                    }
+                }
+                onClicked: {
+                    console.log("clicked at remove");
+                }
+            }
+        }
+    }
+
+    // FIELDTABLEWINDOW
+    Component {
+        id: fieldsAndCanvasComponent
+        FieldTable {}
+    }
+    Rectangle {
+        id: fieldListAndCanvasRect
+        color: 'transparent'
+        anchors.topMargin: 0
+
+        anchors.left: labelTemplatesListRect.right
+        anchors.leftMargin: 50
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        StackView {
+            id: stackViewfieldListAndCanvasRect
+            anchors.fill: parent
+        }
+    }
+    Dialog {
+        id: addNewDialog
+        title: "Создать новый шаблон этикетки"
+        modal: true
+        anchors.centerIn: parent
+        width: 320
+        property var name: "newLabel"
+        contentItem: Column {
+            Text {
+                text: "Введите название в поле ниже"
+                wrapMode: Text.WordWrap
+                padding: 20
+            }
+             
+            TextField {
+                text: addNewDialog.name
+                wrapMode: Text.WordWrap
+                padding: 20
+                onEditingFinished: addNewDialog.name = text
+            }
+        }
+
+        footer: RowLayout {
+            spacing: 10
+            anchors.margins: 10
+
+            Button {
+                text: "Cancel"
+                Layout.fillWidth: true
+                onClicked: addNewDialog.close()
+            }
+
+            Button {
+                text: "OK"
+                Layout.fillWidth: true
+                background: Rectangle {
+                    color: '#101019'
+                    radius: 4
+                }
+                contentItem: Text {
+                    text: parent.text
+                    color: "white"
+                    horizontalAlignment: Text.AlignHCenter
+                }
+                onClicked: {
+                    if (fieldListModel.saveToJson(root.printLabelsPath + addNewDialog.name + ".json") === true) {
+                        labelsList.append(addNewDialog.name);
+
+                    };
+                    addNewDialog.close()
                     
-//                             Label {
+                }
+            }
+        }
+    }
+    Component.onCompleted: {
+        // keywordsModel.loadFromJson(keywordsPath);
+        // enabledKeywords.sourceModel = keywordsModel;
+        // keywordsModel.loadFromJson(keywordsPath);
 
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                 }
-//                                 text: "substring length"
-//                             }
+        customListView.itemClicked.connect(onItemClicked);
+        myHeader.backClicked.connect(onBackClicked);
 
-//                         SpinBox {
-//                             id: substringLengthBox
-//                             from: -1
-//                             to: 100
-//                             value: SubstringLengthRole
-//                             onValueChanged: SubstringLengthRole = value
-//                             stepSize: 1
-//                         }
-//                         }
-//                     }
+        var LabelNames = barcodeAnalyzerId.getFolderJsonBasenames(printLabelsPath);
+        console.log("LabelNames.length:", LabelNames.length);
+        // listViewBarcodes.currentIndex = -1;
+        for (let i = 0; i < LabelNames.length; ++i) {
+            labelsList.append(LabelNames[i]);
+        }
+        console.log("labelsList.count:", labelsList.count);
+        // console.log("labelsListImage.source = ", Qt.resolvedUrl("C:/projects/qt/QmlAppTest/templates/NoImage.bmp"));
 
-//                     Item {
-//                         Layout.preferredWidth: 100
-//                         Layout.preferredHeight: 40
-//                         ColumnLayout {
-//                             Layout.preferredWidth: 100
-//                             Layout.preferredHeight: 20
+        //templateImage.source = "file:///C:/projects/qt/QmlAppTest/templates/NoImage.bmp";
 
-//                             CheckBox {
-//                                 id: matchSplitBox
-//                                 checked: MatchSplitRole
-//                                 onCheckedChanged: MatchSplitRole = checked
-//                                 hoverEnabled: false
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                 }
-//                                 text: "split character"
-//                             }
-//                             TextField {
-//                                 // anchors.top: matchSplitBox.bottom
-//                                 text: SplitTextRole
-//                                 Layout.preferredWidth: 100
-//                                 Layout.preferredHeight: 20
-//                                 placeholderText: "split symbols"
-//                                 placeholderTextColor: "#3f3f3f"
-//                                 color: "white"
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                     border.width: 1
-//                                     border.color: "grey"
-//                                 }
-//                                 onEditingFinished: SplitTextRole = text
-//                             }
-//                         }
-//                     }
-
-//                     Item {
-//                         Layout.preferredWidth: 100
-//                         Layout.preferredHeight: 40
-//                         visible: matchSplitBox.checked
-//                         ColumnLayout {
-//                             Layout.preferredWidth: 100
-//                             Layout.preferredHeight: 20
-//                             spacing: 0
-//                             Label {
-//                                 id: splitPart_l
-//                                 text: "Split Part"
-//                                 height: 20
-//                             }
-//                             SpinBox {
-//                                 id: splitPart
-//                                 anchors.top: splitPart_l.bottom
-//                                 from: 0
-//                                 to: 100
-//                                 value: SplitPartRole
-//                                 onValueChanged: SplitPartRole = value
-//                                 stepSize: 1
-//                             }
-//                         }
-//                     }
-
-//                     Item {
-//                         Layout.preferredWidth: 100
-//                         Layout.preferredHeight: 40
-//                         ColumnLayout {
-//                             Layout.preferredWidth: 100
-//                             Layout.preferredHeight: 20
-
-//                             CheckBox {
-//                                 id: minlen_cb
-//                                 checked: MatchMinLengthRole
-
-//                                 onCheckedChanged: {
-//                                     MatchMinLengthRole = checked;
-//                                     if (!checked)
-//                                         minLen_box.value = 0;
-//                                 }
-//                                 hoverEnabled: false
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                 }
-//                                 text: ": Minimal length"
-//                             }
-
-//                             SpinBox {
-//                                 // anchors.top:minlen_cb.bottom
-//                                 id: minLen_box
-//                                 Layout.preferredWidth: 100
-//                                 Layout.preferredHeight: 20
-//                                 // anchors.top: splitPart_l.bottom
-//                                 from: 0
-//                                 to: 100
-//                                 value: MinLengthRole
-//                                 onValueChanged: MinLengthRole = value
-//                                 stepSize: 1
-//                             }
-//                         }
-//                     }
-//                     Item {
-//                         Layout.preferredWidth: 100
-//                         Layout.preferredHeight: 40
-//                         ColumnLayout {
-//                             Layout.preferredWidth: 100
-//                             Layout.preferredHeight: 20
-
-//                             CheckBox {
-//                                 id: maxlen_cb
-//                                 checked: MatchMaxLengthRole
-
-//                                 onCheckedChanged: {
-//                                     MatchMaxLengthRole = checked;
-//                                     if (!checked)
-//                                         maxLen_box.value = 0;
-//                                 }
-//                                 hoverEnabled: false
-//                                 background: Rectangle {
-//                                     color: "transparent"
-//                                 }
-//                                 text: ": Maximal length"
-//                             }
-
-//                             SpinBox {
-//                                 id: maxLen_box
-//                                 Layout.preferredWidth: 100
-//                                 Layout.preferredHeight: 20
-//                                 // anchors.top: splitPart_l.bottom
-//                                 from: 0
-//                                 to: 100
-//                                 value: MaxLengthRole
-//                                 onValueChanged: MaxLengthRole = value
-//                                 stepSize: 1
-//                             }
-//                         }
-//                     }
-
-                     
-//                 }
-//             } 
-//         }
-//           Column  {
-//                 anchors.top: listView.bottom
-//                 anchors.bottom: parent.bottom
-//                 anchors.left: listView.left
-//                 anchors.right: listView.right
-//                 width: rectMatch.width
-
-//                 Button {
-//                     width: parent.width
-//                     height: 40
-
-//                     background: Rectangle {
-//                         anchors.fill: parent
-//                                                 height: 40
-//                         color: "#101019"
-//                         Text {
-//                             anchors.centerIn: parent
-//                             text: "добавить новое правило"
-//                             color: "white"
-//                             font.pointSize: 14
-//                         }
-//                     }
-//                     onClicked: {
-//                         matchModel.addEmptyItem();
-//                     }
-//                 }
-
-//                   Button {
-//                     width: parent.width
-//                     height: 40
-
-//                     background: Rectangle {
-//                         anchors.fill: parent
-//                                                 height: 40
-//                         color: "#101019"
-//                         Text {
-//                                                 text: "сохранить изменения в файл"
-
-//                             anchors.centerIn: parent
-//                             color: "white"
-//                             font.pointSize: 14
-//                         }
-//                     }
-//                     onClicked: {
-//                              matchModel.saveToJson(templatePath + chosenTemplate + ".json");
-//                     }
-//                 }
-
-
-//                   Button {
-//                     width: parent.width
-//                     height: 40
-
-//                     background: Rectangle {
-//                         anchors.fill: parent
-//                                                 height: 40
-//                         color: "#101019"
-//                         Text {
-//                             anchors.centerIn: parent
-//                     text: "удалить выделенное правило"
-//                             color: "white"
-//                             font.pointSize: 14
-//                         }
-//                     }
-//                     onClicked: {
-//                         matchModel.deleteItem(listView.currentIndex);
-//                     }
-//                 }
-               
-//             }
-
-//     }
-
-    
-    
-// }
+    }
+}

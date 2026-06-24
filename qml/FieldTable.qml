@@ -2,49 +2,142 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
 import QtQuick.Window 2.15
-// import FieldListModel 1.0
-Window {
+import FieldListModel 1.0
+
+Item {
     id: root
-    width: 1500
-    height: 900
+    anchors.fill: parent
     visible: true
-    title: "Field Table Model"
 
-       
+    property var fieldListModelID
+    property var chosenLabelTemplate
+    property var printLabelsPath
+
+    function printCanvas() {
+        console.log("printCanvas() called");
+
+        canvas.grabToImage(function(result) {
+                
+                console.log("result is ", result );
+        
+        fieldListModelID.print(result); // см. C++ ниже
+    });
+}
 
 
-
-    
-    ColumnLayout {
-        anchors.fill: parent
-        anchors.margins: 10
+    Column {
+        anchors {
+            top: parent.top
+            left: parent.left
+            right: parent.right
+            margins: 10
+        }
         spacing: 10
 
-        Text {
-            text: "Field Items Table"
-            font.pixelSize: 24
-            font.bold: true
-        }
+        // Layout.alignment: Qt.AlignTop
+        // Layout.fillHeight: false   // важно
 
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
+        // Header + List (строго сверху, высота 150px)
+        Column {
             spacing: 10
 
+            // Layout.fillHeight: false
+
+            // Layout.fillWidth: true
+            // Layout.preferredHeight: 150 + 24 + 10 // грубо: заголовок + отступы; можно убрать/подобрать
+
+            Text {
+                text: "Field Items Table"
+                color: palette.text
+                font.pixelSize: 24
+                font.bold: true
+                // Layout.alignment: Qt.AlignTop
+                // Layout.fillHeight: false
+            }
             Rectangle {
-                Layout.preferredWidth: 700
-                Layout.fillHeight: true
-                color: "#f5f5f5"
+                height: 15
+                width: parent.width
+                anchors.left: parent.left
+                anchors.right: parent.right
+                color: "transparent"
+                GridLayout {
+                    columns: 4
+                    // columnSpacing: 10
+                    rowSpacing: 10
+                    RowLayout {
+                        Layout.preferredWidth: 50
+                        Layout.preferredHeight: 15
+
+                        Text {
+                            text: "X"
+                            Layout.preferredWidth: 50
+                            Layout.preferredHeight: 15
+                            color: "white"
+                        }
+
+                        Text {
+                            text: "Y"
+                            Layout.preferredWidth: 50
+                            Layout.preferredHeight: 15
+                            color: "white"
+                        }
+
+                        Text {
+                            text: "Ширина"
+                            Layout.preferredWidth: 50
+                            Layout.preferredHeight: 15
+                            color: "white"
+                        }
+
+                        Text {
+                            text: "Высота"
+                            Layout.preferredWidth: 50
+                            Layout.preferredHeight: 15
+                            color: "white"
+                        }
+
+                        Text {
+                            text: "Тип"
+                            Layout.preferredWidth: 100
+                            Layout.preferredHeight: 15
+                            color: "white"
+                        }
+
+                        Text {
+                            text: "Содержание"
+                            Layout.preferredWidth: 200
+                            Layout.preferredHeight: 15
+                            color: "white"
+                        }
+                    }
+                }
+            }
+            Rectangle {
+                // Layout.fillWidth: true
+                // Layout.preferredHeight: 150
+                // Layout.fillHeight: false
+
+                color: "transparent"
                 border.color: "#cccccc"
                 border.width: 1
                 radius: 4
+                width: 600
+                height: 150
 
                 ListView {
                     id: listView
-                    anchors.fill: parent
-                    anchors.margins: 1
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                        top: parent.top
+                        bottom: parent.bottom
+                        margins: 1
+                    }
+                    clip: true
 
-                    model: fieldListModel
+                    property int sbW: 12
+
+                    model: fieldListModelID
                     delegate: Rectangle {
                         anchors.left: parent.left
                         anchors.right: parent.right
@@ -55,205 +148,163 @@ Window {
 
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: {
-                                listView.currentIndex = index;
-                            }
+                            onClicked: listView.currentIndex = index
                         }
+
                         GridLayout {
                             columns: 4
-                            columnSpacing: 10
+                            // columnSpacing: 10
                             rowSpacing: 10
                             RowLayout {
-                                Layout.preferredWidth: 100
-                                Layout.preferredHeight: 20
+                                Layout.preferredWidth: 50
+                                Layout.preferredHeight: 25
+
                                 TextField {
                                     text: X
-                                    Layout.preferredWidth: 100
-                                    Layout.preferredHeight: 20
+                                    Layout.preferredWidth: 50
+                                    Layout.preferredHeight: 25
                                     color: "white"
                                     background: Rectangle {
                                         color: "transparent"
-                                        border.width: 1
-                                        border.color: "grey"
+                                        // border.width: 1
+                                        // border.color: "grey"
                                     }
                                     onEditingFinished: X = text
                                 }
+
                                 TextField {
                                     text: Y
-                                    Layout.preferredWidth: 100
-                                    Layout.preferredHeight: 20
+                                    Layout.preferredWidth: 50
+                                    Layout.preferredHeight: 25
                                     color: "white"
                                     background: Rectangle {
                                         color: "transparent"
-                                        border.width: 1
-                                        border.color: "grey"
+                                        // border.width: 1
+                                        // border.color: "grey"
                                     }
                                     onEditingFinished: Y = text
                                 }
+
                                 TextField {
                                     text: model.width
-                                    Layout.preferredWidth: 100
-                                    Layout.preferredHeight: 20
+                                    Layout.preferredWidth: 50
+                                    Layout.preferredHeight: 25
                                     color: "white"
                                     background: Rectangle {
                                         color: "transparent"
-                                        border.width: 1
-                                        border.color: "grey"
+
+                                        // border.width: 1
+                                        // border.color: "grey"
                                     }
                                     onEditingFinished: model.width = text
                                 }
+
                                 TextField {
                                     text: model.height
-                                    Layout.preferredWidth: 100
-                                    Layout.preferredHeight: 20
+                                    Layout.preferredWidth: 50
+                                    Layout.preferredHeight: 25
                                     color: "white"
                                     background: Rectangle {
                                         color: "transparent"
-                                        border.width: 1
-                                        border.color: "grey"
+                                        // border.width: 1
+                                        // border.color: "grey"
                                     }
                                     onEditingFinished: model.height = text
                                 }
-                                TextField {
-                                    text: codeType
-                                    Layout.preferredWidth: 100
-                                    Layout.preferredHeight: 20
-                                    color: "white"
+
+                                ComboBox {
+                                    id: codeTypeCombo
+                                    Layout.preferredWidth: 150
+                                    Layout.preferredHeight: 25
+                                    property var codeTypeStrings: ["None", "QRCode", "Code39"]
+                                    model: codeTypeStrings
+                                    currentIndex: (codeType === "QRCode") ? 1 : (codeType === "Code39") ? 2 : 0
+                                    onCurrentIndexChanged: {
+                                        codeType = codeTypeStrings[currentIndex];
+                                    }
+                                    onActivated: codeType = codeTypeStrings[currentIndex]
+                                    contentItem: Text {
+                                        text: codeTypeCombo.currentText
+                                        color: "white"
+                                        verticalAlignment: Text.AlignVCenter
+                                        elide: Text.ElideRight
+                                    }
                                     background: Rectangle {
                                         color: "transparent"
-                                        border.width: 1
-                                        border.color: "grey"
+                                        // border.width: 1
+                                        // border.color: "grey"
                                     }
-                                    onEditingFinished: codeType = text
                                 }
+
                                 TextField {
                                     text: content
-                                    Layout.preferredWidth: 100
-                                    Layout.preferredHeight: 20
+                                    Layout.preferredWidth: 200
+                                    Layout.preferredHeight: 25
                                     color: "white"
                                     background: Rectangle {
                                         color: "transparent"
-                                        border.width: 1
-                                        border.color: "grey"
+                                        // border.width: 1
+                                        // border.color: "grey"
                                     }
                                     onEditingFinished: content = text
                                 }
                             }
                         }
                     }
+
+                    // место под scrollbar справа
+                    contentWidth: width - sbW
+                    ScrollBar.vertical: ScrollBar {
+                        width: listView.sbW
+                        policy: ScrollBar.AlwaysOn
+                        anchors {
+                            top: listView.top
+                            right: listView.right
+                            bottom: listView.bottom
+                        }
+                    }
                 }
             }
-            
-
-
-
-    Rectangle {
-        property var pixelDensity: Screen.pixelDensity
-
-        PrintSizeForm{
-            id: printSizeForm
-            
         }
-        
-        id: canvas
-        implicitWidth: printSizeForm.widthMM* pixelDensity
-        implicitHeight: printSizeForm.heightMM * pixelDensity
-        property var canvasItems: []
-        color: "white"
-        border.color: "#ccc"
-        border.width: 1
-        radius: 4
-
-        Repeater {
-            id: repeater
-            model: fieldListModel
-            delegate: Item {
-                id: marker
-                property int modelRow: index
-                width: model.width    // роли width,height
-                height: model.height
-                x: model.X
-                y: model.Y
-                
-                // отобразить SVG/контент
-                Image {
-                        anchors.fill: parent
-                        id: svgImage
-                        source: fieldListModel.GenerateBarcode(modelRow, model.content, model.codetype);   // либо сформируйте путь по codeType
-                        fillMode: Image.PreserveAspectFit
-                        smooth: true
-                }
-                
-
-                // Rectangle {
-                //     anchors.fill: parent
-                //     border.width: 1
-                //     border.color: "green"
-                //     color: (model.index.row() == modelRow)?'#c41dec8f': '#b75d8171';
-                //     Label {
-                //         text: model.content
-                //         anchors.centerIn:parent
-
-                //     }
-                // }
-
-                MouseArea {
-                    anchors.fill: parent
-                    drag.target: marker
-                    drag.axis: Drag.XAndYAxis
-
-                    onClicked: {
-                        listView.currentIndex = modelRow;
-                    }
-
-                    onPositionChanged: {
-                    // при текучем перемещении можно обновлять визуал без записи в модель
-                    }
-
-                    onReleased: {
-                    // Обновляем модель через удобный инвокейбл
-                    fieldListModel.updatePosition(modelRow, marker.x, marker.y)
-                    }
-                }
-
-            // Ограничение движения внутри canvas
-            onXChanged: { if (x < 0) x = 0; if (x + width > canvas.width) x = canvas.width - width }
-            onYChanged: { if (y < 0) y = 0; if (y + height > canvas.height) y = canvas.height - height }
-
-            
-            }
-        }
-    }
-            
-    }
-
         RowLayout {
             Layout.fillWidth: true
             spacing: 10
 
             Button {
-                text: "➕ Add Row"
+                text: "Add Row"
                 Layout.preferredWidth: 150
                 onClicked: {
-                    fieldListModel.addEmptyItem();
+                    fieldListModelID.addEmptyItem();
 
-                    rowCounter.text = "Total rows: " + fieldListModel.rowCount();
+                    rowCounter.text = "Total rows: " + fieldListModelID.rowCount();
+                }
+                background: Rectangle {
+                    color: "#101019"
                 }
             }
 
             Button {
-                text: "🗑️ Remove Selected"
-                Layout.preferredWidth: 200
+                text: "Remove Selected"
+                Layout.preferredWidth: 150
                 onClicked: {
-                    fieldListModel.deleteItem(listView.currentIndex);
-                    rowCounter.text = "Total rows: " + fieldListModel.rowCount();
+                    fieldListModelID.deleteItem(listView.currentIndex);
+                    rowCounter.text = "Total rows: " + fieldListModelID.rowCount();
+                }
+                background: Rectangle {
+                    color: "#101019"
                 }
             }
 
             Button {
-                text: "🧹 Clear All"
+                text: "Save"
                 Layout.preferredWidth: 150
-                onClicked: clearDialog.open()
+                onClicked: {
+                    let res = fieldListModelID.saveToJson(root.printLabelsPath + root.chosenLabelTemplate + ".json");
+                    console.log("Save clicked, saveToJson returned", res);
+                }
+                background: Rectangle {
+                    color: "#101019"
+                }
             }
 
             Item {
@@ -262,43 +313,124 @@ Window {
 
             Text {
                 id: rowCounter
-                text: "Total rows: " + fieldListModel.rowCount()
+                text: "Total rows: " + fieldListModelID.rowCount()
                 font.pixelSize: 14
             }
         }
 
-        Rectangle {
+        Button {
+            width: 200
+            height: 25
+            text: "Test print"
+            onClicked: {
+                console.log("Test print clicked");
+                printCanvas();
+            }
+            background: Rectangle {
+                color: "#101019"
+            }
+        }
+
+        // Preview edit + Canvas (минимум места, выровнено по верхней границе)
+        ColumnLayout {
+
+            spacing: 10
             Layout.fillWidth: true
-            height: 80
-            color: "#e3f2fd"
-            border.color: "#2196F3"
-            border.width: 1
-            radius: 4
+            Layout.fillHeight: false
+            Layout.alignment: Qt.AlignTop
 
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: 10
-                spacing: 8
+            Text {
+                text: ""
+                color: palette.text
+                font.pixelSize: 24
+                font.bold: true
+                height: 25
+                Layout.alignment: Qt.AlignTop
+            }
 
-                Text {
-                    text: "📊 Table Information"
-                    font.pixelSize: 14
-                    font.bold: true
-                    color: "#1976D2"
+            Rectangle {
+                color: "transparent"
+                width: 300
+                Layout.preferredHeight: 25
+
+                PrintSizeForm {
+                    id: printSizeForm
+                    height: 25
                 }
+                Layout.alignment: Qt.AlignTop
+            }
+            Rectangle {
+                id: canvas
+                Layout.fillWidth: true
+                color: "white"
+                border.color: "#ccc"
+                border.width: 1
+                radius: 4
 
-                RowLayout {
-                    spacing: 30
+                implicitWidth: printSizeForm.widthMM * pixelDensity
+                implicitHeight: printSizeForm.heightMM * pixelDensity
 
-                    Text {
-                        text: "Selected Row: " + (listView.currentIndex + 1)
-                        font.pixelSize: 12
+                property var pixelDensity: Screen.pixelDensity
+                property var canvasItems: []
+
+                Repeater {
+                    id: repeater
+                    model: fieldListModelID
+                    delegate: Item {
+                        id: marker
+                        property int modelRow: index
+                        width: model.width
+                        height: model.height
+                        x: X
+                        y: Y
+
+                        Image {
+                            id: svgImage
+                            anchors.fill: parent
+                            source: fieldListModelID.GenerateBarcode(modelRow, content, codeType)
+                            fillMode: Image.PreserveAspectFit
+                            smooth: false
+                        }
+
+                        Text {
+                            width: parent.width
+                            height: parent.height
+                            text: codeType == "None" ? content : ""
+                            fontSizeMode: Text.Fit
+                            minimumPixelSize: 10
+                            font.pixelSize: parent.height
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            drag.target: marker
+                            drag.axis: Drag.XAndYAxis
+
+                            onClicked: listView.currentIndex = modelRow
+                            onReleased: fieldListModelID.updatePosition(modelRow, marker.x, marker.y)
+                        }
+
+                        onXChanged: {
+                            if (x < 0)
+                                x = 0;
+                            if (x + width > canvas.width)
+                                x = canvas.width - width;
+                        }
+                        onYChanged: {
+                            if (y < 0)
+                                y = 0;
+                            if (y + height > canvas.height)
+                                y = canvas.height - height;
+                        }
                     }
                 }
             }
         }
     }
 
+    // Диалоги/нижние кнопки у тебя дальше — оставляй как есть,
+    // но если хочешь чтобы всё было "сверху и минимум по высоте",
+    // их лучше тоже перенести внутрь ColumnLayout и задать Layout.alignment: Qt.AlignTop.
     Dialog {
         id: clearDialog
         title: "Clear All Data"
@@ -334,13 +466,8 @@ Window {
                     color: "white"
                     horizontalAlignment: Text.AlignHCenter
                 }
-                onClicked: {
-                    // fieldListModel.clear();
-                    clearDialog.close();
-                }
+                onClicked: clearDialog.close()
             }
         }
     }
-
-    
 }

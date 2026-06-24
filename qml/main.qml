@@ -50,7 +50,7 @@ Window {
             params = {
                 barcodeAnalyzerId: analyzer,
                 stackViewId: stack,
-                path: "C:/projects/qt/QmlAppTest/print/",
+                path: "C:/projects/qt/QmlAppTest/appdata/printlabels/",
                 headerText: itemName
             };
             obj = printConfiguration.createObject(stack, params);

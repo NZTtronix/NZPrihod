@@ -1,0 +1,37 @@
+{
+    "FieldItems": [
+        {
+            "CodeTypeRole": "None",
+            "ContentRole": "1234567",
+            "HeightRole": 20,
+            "WidthRole": 150,
+            "XRole": 66,
+            "YRole": 106
+        },
+        {
+            "CodeTypeRole": "None",
+            "ContentRole": "кью ар код",
+            "HeightRole": 20,
+            "WidthRole": 100,
+            "XRole": 220,
+            "YRole": 182
+        },
+        {
+            "CodeTypeRole": "QRCode",
+            "ContentRole": "кью ар код",
+            "HeightRole": 100,
+            "WidthRole": 100,
+            "XRole": 208,
+            "YRole": 86
+        },
+        {
+            "CodeTypeRole": "Code39",
+            "ContentRole": "1234567",
+            "HeightRole": 70,
+            "WidthRole": 200,
+            "XRole": 8,
+            "YRole": 29
+        }
+    ],
+    "name": "label1"
+}

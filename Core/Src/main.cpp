@@ -26,18 +26,18 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<BarcodeAnalyzer>("Backend", 1, 0, "BarcodeAnalyzer");
     qmlRegisterType<FieldListModel>("FieldListModel", 1, 0, "FieldListModel");
-    FieldListModel *model = new FieldListModel(&app);
+    // FieldListModel *model = new FieldListModel(&app);
 
   
-    engine.rootContext()->setContextProperty("fieldListModel", model);
+    // engine.rootContext()->setContextProperty("fieldListModel", model);
 
 
 
     engine.addImportPath("C:/zxing-cpp/wrappers/qt");
     engine.addImportPath("C:/zxing-cpp");
     
-    const QUrl url("qrc:/QmlAppURI/qml/FieldTable.qml"); // ссылка на файл qml
-    // const QUrl url("qrc:/QmlAppURI/qml/main.qml"); // ссылка на файл qml
+    // const QUrl url("qrc:/QmlAppURI/qml/FieldTable.qml"); // ссылка на файл qml
+    const QUrl url("qrc:/QmlAppURI/qml/main.qml"); // ссылка на файл qml
     engine.load(url);   // загружаем файл qml
     return app.exec();
 

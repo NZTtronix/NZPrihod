@@ -1,14 +1,13 @@
-
-
 /*
 This is a UI file (.ui.qml) that is intended to be edited in Qt Design Studio only.
 It is supposed to be strictly declarative and only uses a subset of QML. If you edit
 this file manually, you might introduce QML code that is not supported by Qt Design Studio.
 Check out https://doc.qt.io/qtcreator/creator-quick-ui-forms.html for details on .ui.qml files.
 */
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
+import QtQuick 
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 2.15
+import QtQuick.Controls.impl 2.15
 
 Rectangle {
     Layout.fillHeight: true
@@ -21,14 +20,16 @@ Rectangle {
         buttonText: "white"
         // windowText: "white"
         base: "transparent"
+        window: "transparent"
+        highlight: "#203030"
+        
         // window: "transparent"
         // фон окна (если нужно)
         button: "#203030"
     }
-
+    
     property alias widthMM: spinBoxWidth.value
     property alias heightMM: spinBoxHeight.value
-    
 
     ListModel {
         id: standartSizesModel
@@ -57,56 +58,63 @@ Rectangle {
         id: gridLayout
         x: 0
         y: 0
-        Layout.preferredWidth: 100
-        Layout.preferredHeight: 25
+        Layout.preferredHeight: 20
 
         ComboBox {
             id: chooseStandartCustom
-            model: ["Custom Size", "Standart Size"]
+            Layout.preferredWidth: 150
+            model: ["Кастомный размер", "Стандартный размер"]
+            background: Rectangle{color: "transparent"; border.width: 2; radius:4; border.color: "#CCCCCC"}
+
             Connections {
                 target: standartSizeBox
                 function onActivated(index) {
-                    spinBoxWidth.value = standartSizesModel.get(index).w
-                    spinBoxHeight.value = standartSizesModel.get(index).h
+                    spinBoxWidth.value = standartSizesModel.get(index).w;
+                    spinBoxHeight.value = standartSizesModel.get(index).h;
                 }
             }
+           
         }
 
         ComboBox {
             id: standartSizeBox
+            Layout.preferredWidth: 150
             model: standartSizesModel
             visible: chooseStandartCustom.currentIndex === 1
             textRole: "format"
-
+            background: Rectangle{color: "transparent"; border.width: 2; radius: 4; border.color: "#CCCCCC"}
+            
             Connections {
                 target: standartSizeBox
                 function onActivated(index) {
-                    spinBoxWidth.value = standartSizesModel.get(index).w
-                    spinBoxHeight.value = standartSizesModel.get(index).h
+                    spinBoxWidth.value = standartSizesModel.get(index).w;
+                    spinBoxHeight.value = standartSizesModel.get(index).h;
                 }
             }
         }
         SpinBox {
             id: spinBoxWidth
+            Layout.preferredWidth: 50
             visible: chooseStandartCustom.currentIndex === 0
             value: 60.0
             wheelEnabled: true
             editable: true
             to: 999.0
-            // background: Rectangle {
-            //     color: "transparent"
-            // }
+            background: Rectangle {
+                color: "transparent"
+            }
         }
         SpinBox {
             id: spinBoxHeight
+            Layout.preferredWidth: 50
             visible: chooseStandartCustom.currentIndex === 0
             value: 40.0
             wheelEnabled: true
             editable: true
             to: 999.0
-            // background: Rectangle {
-            //     color: "transparent"
-            // }
+            background: Rectangle {
+                color: "transparent"
+            }
         }
     }
 }

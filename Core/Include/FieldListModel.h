@@ -8,7 +8,10 @@
 #include <QString>
 #include <QSortFilterProxyModel>
 #include <ZXing/ZXingCpp.h>
-
+#include <QPrinter>
+#include <QPainter>
+#include <QImage>
+#include <QQuickItemGrabResult> 
 struct FieldItem {
     double X = 50;
     double Y = 50;
@@ -47,7 +50,10 @@ public:
     Q_INVOKABLE bool loadFromJson(const QString path);
     Q_INVOKABLE bool saveToJson(const QString path);
     Q_INVOKABLE QString  GenerateBarcode(int row, QString barcodetext, QString barcodeformat);
-    
+    Q_INVOKABLE void print(QString labelTemplateName);
+    Q_INVOKABLE void print(QImage img);
+    Q_INVOKABLE void print(QQuickItemGrabResult *pr);
+
 
 
 private:
