@@ -4,6 +4,9 @@ import QtQuick.Dialogs
 import QtQuick.Layouts
 import QtCore
 import Backend 1.0
+import KeywordsModel 1.0
+import FieldListModel 1.0
+
 
 Window {
     id: root
@@ -12,7 +15,21 @@ Window {
         var params;
         console.log("Clicked at ", itemName);
         if (itemName == "Main") {
-            stack.replaceCurrentItem(mainPage);
+            params = {
+                barcodeAnalyzerId: analyzer,
+                keywordsModelID: keywordsModel,
+                fieldListModelID: fieldListModel,
+                stackViewId: stack,
+                headerText: itemName
+            };
+            obj = mainPage.createObject(stack, params);  
+            if (!obj)
+                console.log("creation failed:", mainPage.errorString());
+            else {
+                console.log("created:", obj);
+                stack.replaceCurrentItem(obj); // или push/insert в StackView
+            }
+
         }
 
         if (itemName == "Templates") {
@@ -33,6 +50,7 @@ Window {
          if (itemName == "Keywords") {
             params = {
                 barcodeAnalyzerId: analyzer,
+                keywordsModelID: keywordsModel,
                 stackViewId: stack,
                 path: "C:/projects/qt/QmlAppTest/appData/keywords/",
                 headerText: itemName
@@ -83,6 +101,14 @@ Window {
     BarcodeAnalyzer {
         id: analyzer
     }
+    KeywordsModel {
+        id: keywordsModel
+    }
+
+    FieldListModel {
+        id: fieldListModel
+    }
+
     Component {
         id: keywordsConfiguration
         KeywordsConfiguration {}
@@ -97,10 +123,7 @@ Window {
     }
     Component {
         id: mainPage
-        MainPage {
-            stackViewId: stack
-            barcodeAnalyzerId: analyzer
-        }
+        MainPage {}
     }
     Component {
         id: clearPage
@@ -126,5 +149,10 @@ Window {
     }
     Component.onCompleted: {
             menu.itemClicked.connect(onItemClicked);
+            keywordsModel.loadFromJson(path + "keywords.json");
+            console.log("keywordsModel.rowCount():", keywordsModel.rowCount());
+
+
+            
     }
 }

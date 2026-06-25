@@ -50,7 +50,13 @@ qt_add_qml_module(QmlApp
                     # qml/printtable.qml
                     qml/FieldTable.qml
                     qml/PrintSizeForm.ui.qml
-
+                    qml/ExtractionListView.ui.qml
+                    qml/ExtractionListViewDelegate.ui.qml
+                    qml/ExtractionListViewModel.qml
+                    # qml/MainPageToolBar.ui.qml
+                    # qml/MainPageToolBarDelegate.ui.qml
+                    # qml/MainPageToolBarModel.qml
+                    qml/MainPageButton.ui.qml
 
         SOURCES  
          Core/Src/barcodeanalyzer.cpp
@@ -86,6 +92,14 @@ qt_add_qml_module(QmlApp
             qml/Resources/icons/rule.svg
             qml/Resources/icons/history.svg
             qml/Resources/icons/label.svg
+            qml/Resources/icons/add_a_photo.svg
+            qml/Resources/icons/add_photo_alternate.svg
+            qml/Resources/icons/delete.svg
+            qml/Resources/icons/lightbulb.svg
+            qml/Resources/icons/live_tv.svg
+            qml/Resources/icons/tv_off.svg
+
+
 
 )
 

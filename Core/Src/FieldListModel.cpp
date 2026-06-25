@@ -20,6 +20,7 @@ bool FieldListModel::setData(const QModelIndex &index, const QVariant &value, in
     const int row = index.row();
     if (row < 0 || row >= m_items.size()) return false;
 
+
     FieldItem &item = m_items[index.row()];
     bool changed = false;
     switch (role) {
@@ -138,7 +139,32 @@ bool FieldListModel::updatePosition(int row, double x, double y) {
 
     return false;
 }
+bool FieldListModel::updateSize(int row, double w, double h) {
+    bool changedW = false;
+    bool changedH = false;
+    QModelIndex idx = index(row, 0, QModelIndex());
+    QList<int> roles;
+    roles.clear();
+    if (row >= 0, row < m_items.size()) {
+        FieldItem &item = m_items[row];
+        if (item.width != w) {
+            item.width = w;
+            changedW = true;
+            roles.append(WidthRole);
+        }
+        if (item.height != h) {
+            item.height = h;
+            changedH = true;
+            roles.append(HeightRole);
+        }
+    }
+    if (roles.size() > 0) {
+        emit dataChanged(idx, idx, roles);
+        return true;
+    }
 
+    return false;
+}
 bool FieldListModel::loadFromJson(const QString path) {
     qDebug() << "loadFromJson: qFile(" << path << ")";
     QFile qFile(path);
@@ -158,9 +184,24 @@ bool FieldListModel::loadFromJson(const QString path) {
         qFile.write(qJsonDocument.toJson(QJsonDocument::Indented));
         qFile.close();
     }
+    if (!qJsonObject.contains("CanvasWidthMM"  )  ) {
+        qJsonObject.insert("CanvasWidthMM", QJsonArray());
+        qJsonDocument.setObject(qJsonObject);
+        qFile.open(QIODevice::WriteOnly | QIODevice::Truncate);
+        qFile.write(qJsonDocument.toJson(QJsonDocument::Indented));
+        qFile.close();
+    }
+    if (!qJsonObject.contains("CanvasHeightMM")) {
+          qJsonObject.insert("CanvasHeightMM", QJsonArray());
+        qJsonDocument.setObject(qJsonObject);
+        qFile.open(QIODevice::WriteOnly | QIODevice::Truncate);
+        qFile.write(qJsonDocument.toJson(QJsonDocument::Indented));
+        qFile.close();
+    }  
+    
+ 
     m_fullJson = qJsonObject;
     QJsonArray qJsonArray = qJsonObject["FieldItems"].toArray();
-
     m_items.clear();
     beginResetModel();
 
@@ -175,6 +216,9 @@ bool FieldListModel::loadFromJson(const QString path) {
         fieldItem.codeType = obj["CodeTypeRole"].toString();
         m_items.append(fieldItem);
     }
+    m_canvasWidthMM = qJsonObject["CanvasWidthMM"].toDouble();
+    m_canvasHeightMM = qJsonObject["CanvasHeightMM"].toDouble();
+
     endResetModel();
     return true;
 
@@ -195,7 +239,9 @@ bool FieldListModel::saveToJson(const QString path) {
         qJsonArray.append(obj);
     }
     m_fullJson.insert("FieldItems", qJsonArray);
-
+    m_fullJson.insert("CanvasWidthMM", m_canvasWidthMM);
+    m_fullJson.insert("CanvasHeightMM", m_canvasHeightMM);
+    QJsonObject obj;
 
     QJsonDocument qJsonDocument;
     qJsonDocument.setObject(m_fullJson);
@@ -209,15 +255,7 @@ bool FieldListModel::saveToJson(const QString path) {
     return true;
 
 }
- void FieldListModel::print(QString labelTemplateName) {
-        
-    
-    
- }    
-void FieldListModel::print(QImage img) {
-
-
-}
+ 
 
 void FieldListModel::print(QQuickItemGrabResult *pr) {
     qDebug() << "FieldListModel::print is called";
@@ -233,7 +271,8 @@ void FieldListModel::print(QQuickItemGrabResult *pr) {
         printer.setResolution(300);
         printer.setPageSize(QPageSize(QPageSize::A4));
         printer.setFullPage(false);
-        printer.setPrinterName("Pantum M6500W Series");
+        // printer.setPrinterName("Pantum M6500W Series");
+        printer.setPrinterName("ZDesigner ZD888-203dpi ZPL");
         QPainter painter;
         if (!painter.begin(&printer)) {
             qDebug() << "printImage: cannot begin painter on printer";
@@ -264,9 +303,7 @@ void FieldListModel::print(QQuickItemGrabResult *pr) {
     const qreal dpi = printer.resolution();
         qDebug() << "dpi="<<dpi;
 
-    // Размер в "физических" единицах печати: пиксели -> дюймы -> пункты
-    // QPrinter рисует в пунктах (1 pt = 1/72 inch), поэтому:
-    // pt = (px / dpi) * 72
+
     const qreal wPt = pxWinches * dpi;
     const qreal hPt = pxHinches * dpi;
                 qDebug() << "wPt="<<wPt<<" hPt="<<hPt;
@@ -284,7 +321,6 @@ void FieldListModel::print(QQuickItemGrabResult *pr) {
  }
         
         
-
 QString FieldListModel::GenerateBarcode(int row, QString barcodetext, QString barcodeformat) {
 
     ZXing::BarcodeFormat format;
@@ -315,12 +351,24 @@ QString FieldListModel::GenerateBarcode(int row, QString barcodetext, QString ba
         qDebug() << "ToString(format) = " << ToString(format);
     }
 
-    // auto barcode = ZXing::CreateBarcodeFromText(barcodetext.toStdString(), format);
-    // auto svgBytes = ZXing::WriteBarcodeToSVG(barcode);
-    // QString svg = QString::fromUtf8(svgBytes);                   // ваш SVG
-    // QString encoded = QUrl::toPercentEncoding(svg,QByteArray());
-    // QString dataUrl = "data:image/svg+xml;utf8," + encoded;
-    // qDebug()<< dataUrl << "\n";
+    
     QString dataString = barcodetext;
     return dataString;
 }
+
+
+
+
+void FieldListModel::setCanvasWidthMM(qreal val) {
+    qDebug()<< "setCanvasWidthMM called with val = " << val ;
+    if (qFuzzyCompare(m_canvasWidthMM, val)) return;
+    m_canvasWidthMM = val;
+    emit canvasWidthMMChanged();
+}
+void FieldListModel::setCanvasHeightMM(qreal val) {
+    qDebug()<< "setCanvasHeightMM called with val = " << val ;
+    if (qFuzzyCompare(m_canvasHeightMM, val)) return;
+    m_canvasHeightMM = val;
+    emit canvasHeightMMChanged();
+}
+

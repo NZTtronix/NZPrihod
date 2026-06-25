@@ -290,17 +290,7 @@ Row {
     }
     Component.onCompleted: {
         myHeader.backClicked.connect(onBackClicked);
-        // var jsonkeywordsstr = barcodeAnalyzerId.loadJsonStringFromTemplateFile(path + "keywords.json");
-        // console.log(jsonkeywordsstr);
-        // var obj = JSON.parse(jsonkeywordsstr);
-        // for (var i = 0; i < obj.keywords.length; ++i) {
-        //     var entry = obj.keywords[i];
-        //     keywordsListModel.append({
-        //         "keyword": entry.keyword,
-        //         "fullname": entry.fullname
-        //     });
-        // }
-
+    
         keywordsModel.loadFromJson(path + "keywords.json");
 
         console.log("keywordsModel.rowCount():", keywordsModel.rowCount());

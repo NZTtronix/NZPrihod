@@ -1,0 +1,14 @@
+{
+    "CanvasHeightMM": 50,
+    "CanvasWidthMM": 50,
+    "FieldItems": [
+        {
+            "CodeTypeRole": "None",
+            "ContentRole": "ХУЙ",
+            "HeightRole": 131,
+            "WidthRole": 199,
+            "XRole": 21,
+            "YRole": 18
+        }
+    ]
+}

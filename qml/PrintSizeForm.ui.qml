@@ -4,12 +4,15 @@ It is supposed to be strictly declarative and only uses a subset of QML. If you 
 this file manually, you might introduce QML code that is not supported by Qt Design Studio.
 Check out https://doc.qt.io/qtcreator/creator-quick-ui-forms.html for details on .ui.qml files.
 */
-import QtQuick 
+import QtQuick
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 2.15
 import QtQuick.Controls.impl 2.15
 
 Rectangle {
+    id: root
+    signal canvasSizeChanged(real widthMM, real heightMM)
+
     Layout.fillHeight: true
     Layout.fillWidth: true
     palette {
@@ -22,14 +25,16 @@ Rectangle {
         base: "transparent"
         window: "transparent"
         highlight: "#203030"
-        
+
         // window: "transparent"
         // фон окна (если нужно)
         button: "#203030"
     }
-    
+
     property alias widthMM: spinBoxWidth.value
     property alias heightMM: spinBoxHeight.value
+
+    
 
     ListModel {
         id: standartSizesModel
@@ -64,7 +69,12 @@ Rectangle {
             id: chooseStandartCustom
             Layout.preferredWidth: 150
             model: ["Кастомный размер", "Стандартный размер"]
-            background: Rectangle{color: "transparent"; border.width: 2; radius:4; border.color: "#CCCCCC"}
+            background: Rectangle {
+                color: "transparent"
+                border.width: 2
+                radius: 4
+                border.color: "#CCCCCC"
+            }
 
             Connections {
                 target: standartSizeBox
@@ -73,7 +83,6 @@ Rectangle {
                     spinBoxHeight.value = standartSizesModel.get(index).h;
                 }
             }
-           
         }
 
         ComboBox {
@@ -82,8 +91,13 @@ Rectangle {
             model: standartSizesModel
             visible: chooseStandartCustom.currentIndex === 1
             textRole: "format"
-            background: Rectangle{color: "transparent"; border.width: 2; radius: 4; border.color: "#CCCCCC"}
-            
+            background: Rectangle {
+                color: "transparent"
+                border.width: 2
+                radius: 4
+                border.color: "#CCCCCC"
+            }
+
             Connections {
                 target: standartSizeBox
                 function onActivated(index) {
@@ -103,6 +117,12 @@ Rectangle {
             background: Rectangle {
                 color: "transparent"
             }
+            Connections {
+                target: spinBoxWidth
+                function onValueChanged() {
+                    root.canvasSizeChanged(widthMM, heightMM)
+                }
+            }
         }
         SpinBox {
             id: spinBoxHeight
@@ -115,6 +135,13 @@ Rectangle {
             background: Rectangle {
                 color: "transparent"
             }
+            Connections {
+                target: spinBoxHeight
+                function onValueChanged() {
+                    root.canvasSizeChanged(widthMM, heightMM)
+                }
+            }     
         }
+
     }
 }

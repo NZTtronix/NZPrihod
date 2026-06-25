@@ -1,20 +1,22 @@
 {
+    "CanvasHeightMM": 71,
+    "CanvasWidthMM": 80,
     "FieldItems": [
         {
-            "CodeTypeRole": "QRCode",
-            "ContentRole": "null",
-            "HeightRole": 150,
-            "WidthRole": 150,
-            "XRole": 21,
-            "YRole": 9
+            "CodeTypeRole": "Code39",
+            "ContentRole": "1234567890",
+            "HeightRole": 188,
+            "WidthRole": 370,
+            "XRole": 29,
+            "YRole": 176
         },
         {
             "CodeTypeRole": "QRCode",
-            "ContentRole": "null",
-            "HeightRole": 150,
-            "WidthRole": 150,
-            "XRole": 182,
-            "YRole": 68
+            "ContentRole": "asdqwe",
+            "HeightRole": 114,
+            "WidthRole": 108,
+            "XRole": 279,
+            "YRole": 40
         }
     ]
 }

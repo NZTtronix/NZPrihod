@@ -1,7 +1,7 @@
 #include "barcodeanalyzer.h"
 #include "opencv2/imgcodecs.hpp"
 
- #define DebugShowImages 0
+//  #define DebugShowImages 0
 
 // #define CROP_IMAGE_BY_REEL 1
 
@@ -87,7 +87,7 @@ QString BarcodeAnalyzer::processTemplateImage(QString templateName) {
     options.setTryRotate(true);
     options.setTryDownscale(false);
     options.setBinarizer(ZXing::Binarizer::LocalAverage);
-    options.setFormats(ZXing::BarcodeFormat::All);
+    options.setFormats(ZXing::BarcodeFormat::AllLinear);
 
     // 7 ЗАПИСЬ МАКСИМАЛЬНОГО КОЛ-ВА ШТРИХКОДОВ, ЗАПИСЬ ЛУЧШЕГО СПИСКА БАРКОДОВ СРЕДИ ВСЕХ ВАРИАНТОВ ЭКСПОЗИЦИИ
     int barcodeQtys[exposuredImgs.size()] = {0};
@@ -276,7 +276,7 @@ QString BarcodeAnalyzer::processImage(const QString &fileUrlOrPath) {
     ZXing::ReaderOptions options;
     options.setTryRotate(true);
     options.setBinarizer(ZXing::Binarizer::LocalAverage);
-    options.setFormats(ZXing::BarcodeFormat::AllMatrix);
+    options.setFormats(ZXing::BarcodeFormat::AllLinear);
 
     // 7 ЗАПИСЬ МАКСИМАЛЬНОГО КОЛ-ВА ШТРИХКОДОВ, ЗАПИСЬ ЛУЧШЕГО СПИСКА БАРКОДОВ СРЕДИ ВСЕХ ВАРИАНТОВ ЭКСПОЗИЦИИ
     int barcodeQtys[exposuredImgs.size()] = {0};
