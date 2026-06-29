@@ -3,10 +3,10 @@ import QtQuick.Controls
 import QtQuick.Dialogs
 import QtQuick.Layouts
 import QtCore
+//  import MyCamera 1.0
 import Backend 1.0
 import KeywordsModel 1.0
 import FieldListModel 1.0
-
 
 Window {
     id: root
@@ -22,14 +22,13 @@ Window {
                 stackViewId: stack,
                 headerText: itemName
             };
-            obj = mainPage.createObject(stack, params);  
+            obj = mainPage.createObject(stack, params);
             if (!obj)
                 console.log("creation failed:", mainPage.errorString());
             else {
                 console.log("created:", obj);
                 stack.replaceCurrentItem(obj); // или push/insert в StackView
             }
-
         }
 
         if (itemName == "Templates") {
@@ -47,7 +46,7 @@ Window {
                 stack.replaceCurrentItem(obj); // или push/insert в StackView
             }
         }
-         if (itemName == "Keywords") {
+        if (itemName == "Keywords") {
             params = {
                 barcodeAnalyzerId: analyzer,
                 keywordsModelID: keywordsModel,
@@ -55,16 +54,15 @@ Window {
                 path: "C:/projects/qt/QmlAppTest/appData/keywords/",
                 headerText: itemName
             };
-             obj = keywordsConfiguration.createObject(stack, params);
+            obj = keywordsConfiguration.createObject(stack, params);
             if (!obj)
                 console.log("creation failed:", keywordsConfiguration.errorString());
             else {
                 console.log("created:", obj);
                 stack.replaceCurrentItem(obj); // или push/insert в StackView
             }
-
-         }
-         if (itemName == "PrintCfg") {
+        }
+        if (itemName == "PrintCfg") {
             params = {
                 barcodeAnalyzerId: analyzer,
                 stackViewId: stack,
@@ -79,17 +77,15 @@ Window {
                 stack.replaceCurrentItem(obj); // или push/insert в StackView
             }
         }
-       
-          if (itemName == "History") {
-                stack.replaceCurrentItem(clearPage);
-            }
-            if (itemName == "Settings") {
-                stack.replaceCurrentItem(clearPage);
-            }
-            if (itemName == "About")
-                stack.replaceCurrentItem(clearPage);
-        
 
+        if (itemName == "History") {
+            stack.replaceCurrentItem(clearPage);
+        }
+        if (itemName == "Settings") {
+            stack.replaceCurrentItem(clearPage);
+        }
+        if (itemName == "About")
+            stack.replaceCurrentItem(clearPage);
     }
     width: 1600
     height: 1200
@@ -98,6 +94,55 @@ Window {
 
     visible: true
     color: "#101019"
+
+    
+    // Column {
+    //     x:200
+    //     y:500
+    //     Button {
+    //         id: takeAPhotoButton
+    //         icon.source: "Resources/icons/add_a_photo.svg"
+    //         text: "тест фото"
+    //         onClicked: myCamera.onImageRequestSignal()
+    //     }
+    //     Button {
+    //         id: liveButton
+    //         icon.source: "Resources/icons/add_a_photo.svg"
+    //         text: "live"
+    //         onClicked: myCamera.resetTriggerMode();
+    //     }
+    //     Button {
+    //         id: startGrabbing;
+    //         onClicked:                 myCamera.onStartGrabbing();
+    //         text: "startGrabbing"
+    //     }
+    //       Button {
+    //         id: init;
+    //         onClicked:                 myCamera.initCamera();
+    //         text: "init"
+    //     }
+    // }
+    // Image {
+    //     id: liveVideo
+    //     anchors.fill: parent
+    //     cache: false // Обязательно отключаем кэш!
+    //     fillMode: Image.PreserveAspectFit
+
+    //     property int frameCounter: 0
+    //     source: "image://myimageprovider/live"
+
+    //     function refresh() {
+    //         frameCounter++;
+    //         source = "image://myimageprovider/live?timestamp=" + frameCounter;
+    //     }
+    // }
+    // Connections {
+    //     target: myCamera
+    //     function onImageReady() {
+    //         liveVideo.refresh();
+    //     }
+    // }
+
     BarcodeAnalyzer {
         id: analyzer
     }
@@ -148,11 +193,9 @@ Window {
         anchors.right: parent.right
     }
     Component.onCompleted: {
-            menu.itemClicked.connect(onItemClicked);
-            keywordsModel.loadFromJson(path + "keywords.json");
-            console.log("keywordsModel.rowCount():", keywordsModel.rowCount());
+        menu.itemClicked.connect(onItemClicked);
+        keywordsModel.loadFromJson(path + "keywords.json");
+        console.log("keywordsModel.rowCount():", keywordsModel.rowCount());
 
-
-            
     }
 }

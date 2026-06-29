@@ -96,8 +96,10 @@ private:
   cv::Mat detectAndDeskewBarcode(const cv::Mat &src, int variant);
   
   void shortShow(const cv::Mat &matrix);
+void shortShow(const cv::Mat &matrix, cv::String name) ;
 
 signals:
+  void resultReady();
   void materialTemplatesChanged();
   void materialTemplatesNamesChanged();
   void imagePathChanged();

@@ -4,10 +4,18 @@ set(CMAKE_PROJECT_NAME QmlApp)
 project(${CMAKE_PROJECT_NAME} LANGUAGES CXX)
 
 set(CMAKE_AUTOMOC ON)
+
+
+set(MVS_ROOT C:/MVS)
+set(MVS_INCLUDE_DIRS C:/MVS/Development/Includes)
+set(MVS_LIB_DIR C:/MVS/Development/Libraries/win64)
+
 set(ZXing_INCLUDE_DIRS C:/ZXing/include)
 set(ZXing_DIR C:/zxing_cpp_vs/build)
 set(OpenCV_DIR C:/OpenCV/OpenCV-MinGW-Build-OpenCV-4.5.2-x64)
 
+
+list(APPEND CMAKE_PREFIX_PATH "C:/MVS/Development/Includes")
 
 
 list(APPEND CMAKE_PREFIX_PATH "C:/ZXing")
@@ -17,22 +25,25 @@ list(APPEND CMAKE_PREFIX_PATH "C:/OpenCV/OpenCV-MinGW-Build-OpenCV-4.5.2-x64")
 find_package(Qt6 6.5 REQUIRED COMPONENTS
     Quick
     Multimedia
-        Qml
-        Gui
-        PrintSupport
-        Widgets
+    Qml
+    Gui
+    PrintSupport
+    Widgets
+    
 
 )
 find_package(ZXing REQUIRED )
 find_package(OpenCV REQUIRED)
 qt_standard_project_setup()
 
-qt_add_executable(QmlApp
+qt_add_executable(${CMAKE_PROJECT_NAME} 
     Core/Src/main.cpp
 )
+set_source_files_properties(MyCamera.qml
+    PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 
-qt_add_qml_module(QmlApp
+qt_add_qml_module(${CMAKE_PROJECT_NAME} 
     URI ${CMAKE_PROJECT_NAME}URI
     VERSION 1.0
     
@@ -47,15 +58,12 @@ qt_add_qml_module(QmlApp
                     qml/KeywordsConfiguration.qml
                     qml/PrintConfiguration.qml
                     qml/TemplateMatchConditions.qml
-                    # qml/printtable.qml
                     qml/FieldTable.qml
                     qml/PrintSizeForm.ui.qml
                     qml/ExtractionListView.ui.qml
                     qml/ExtractionListViewDelegate.ui.qml
                     qml/ExtractionListViewModel.qml
-                    # qml/MainPageToolBar.ui.qml
-                    # qml/MainPageToolBarDelegate.ui.qml
-                    # qml/MainPageToolBarModel.qml
+                 
                     qml/MainPageButton.ui.qml
 
         SOURCES  
@@ -67,6 +75,7 @@ qt_add_qml_module(QmlApp
          Core/Src/MatchModel.cpp
          Core/Src/BarcodesModel.cpp
          Core/Src/FieldListModel.cpp
+         Core/Src/MyCamera.cpp
 
 
          Core/Include/barcodeanalyzer.h
@@ -77,6 +86,8 @@ qt_add_qml_module(QmlApp
          Core/Include/MatchModel.h 
          Core/Include/BarcodesModel.h 
          Core/Include/FieldListModel.h
+         Core/Include/MyCamera.h
+        Core/Include/MyImageProvider.h
 
          RESOURCES 
             qml/Resources/icons/back.svg
@@ -98,6 +109,7 @@ qt_add_qml_module(QmlApp
             qml/Resources/icons/lightbulb.svg
             qml/Resources/icons/live_tv.svg
             qml/Resources/icons/tv_off.svg
+            
 
 
 
@@ -107,18 +119,22 @@ qt_add_qml_module(QmlApp
 
 
 
-target_link_libraries(QmlApp
+target_link_libraries(${CMAKE_PROJECT_NAME} 
     PRIVATE
         Qt6::Quick
         Qt6::Multimedia
-            Qt6::Qml
+        Qt6::Qml
         Qt6::PrintSupport
         ${OpenCV_LIBS}
         ZXing::ZXing
+        "${MVS_LIB_DIR}/MvCameraControl.lib"
+
+        
         
 )
 
-target_include_directories(QmlApp PRIVATE
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
+    ${MVS_INCLUDE_DIRS}
     ${ZXing_INCLUDE_DIRS}
     "C:/ZXing/include"
     "C:/ZXing/include/ZXing"
@@ -127,7 +143,7 @@ target_include_directories(QmlApp PRIVATE
     "C:/Qt/6.9.2/mingw_64/bin"
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Include
     ${CMAKE_CURRENT_SOURCE_DIR}/qml
-        ${CMAKE_CURRENT_SOURCE_DIR}/Resources/icons
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/icons
 
         
 
@@ -135,7 +151,7 @@ target_include_directories(QmlApp PRIVATE
 
 include(GNUInstallDirs)
 
-install(TARGETS QmlApp
+install(TARGETS ${CMAKE_PROJECT_NAME}
     BUNDLE  DESTINATION .
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

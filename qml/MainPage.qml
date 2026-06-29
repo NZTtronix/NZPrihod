@@ -7,8 +7,6 @@ import QtMultimedia
 import QtCore
 import KeywordsModel 1.0
 import QtQuick.Controls.impl
-
-// ОБЯЗАТЕЛЬНО: для работы StandardPaths в Qt 6
 import ZXing 1.0
 import Backend 1.0
 
@@ -17,6 +15,8 @@ Page {
         console.log("back clicked:");
         root.stackViewId.popCurrentItem();
     }
+
+
     property var headerText: "Main Page"
     property var barcodeAnalyzerId
     property var stackViewId
@@ -37,7 +37,20 @@ Page {
     header: CustomPageHeader {
         id: myHeader
     }
-
+    Connections {
+        target: myCamera
+        function onImageReady() {
+            liveVideo.refresh();
+        }
+        
+    }
+    Connections {
+        target: analyzer
+        function onResultReady() {
+            image.onResultReady();
+        }
+        
+    }
     palette {
         text: "white"
         buttonText: "white"
@@ -103,19 +116,26 @@ Page {
             iconSource: "Resources/icons/add_a_photo.svg"
             textlabel: "Сделать фото"
             marea.onClicked: {
+                
                 console.log("onClicked on ", textlabel);
-                var now = new Date();
-                var name = now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) + "_" + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds()) + ".png";
-                var path = "C:/projects/qt/QmlAppTest/appdata/History/" + name;
+                
+                if (myCamera.saveImage()){
+                    analyzer.imgPath=myCamera.getLastSavedPath();
+                    // image.source=analyzer.imgPath;
+                    image.source="file:///"+ analyzer.imgPath;
+                    image.visible = true;
+                    liveVideo.visible= false;
+                    let outputLog = analyzer.processImage(analyzer.imgPath);
+                    resultArea.text = outputLog;
 
-                analyzer.imgPath = "file:///" + path;
-                imageCapture.captureToFile(path);
-                image.source = analyzer.imgPath;
+
+                };
+                
             }
-            function pad(n) {
-                return n < 10 ? "0" + n : n;
-            }
+            
         }
+
+
         MainPageButton {
             id: buttonLoadFromImage
             iconSource: "Resources/icons/add_photo_alternate.svg"
@@ -123,6 +143,8 @@ Page {
             marea.onClicked: {
                 console.log("onClicked on ", textlabel);
                 fileDialog.open();
+                
+
             }
         }
         MainPageButton {
@@ -130,12 +152,11 @@ Page {
             iconSource: "Resources/icons/qr_code_scanner.svg"
             textlabel: "Сканировать"
             marea.onClicked: {
+                
                 console.log("onClicked on ", textlabel);
-                // if (pathToChosenImage.trim() === "") {
-                //     resultArea.text = "Ошибка: Сначала укажите путь к файлу!";
-                //     return;
-                // }
                 resultArea.text = "идет обрыботка";
+                liveVideo.visible = false;
+                image.visible = true;
 
                 let outputLog = analyzer.processImage(pathToChosenImage);
                 var newline1 = outputLog.indexOf("/n");
@@ -145,17 +166,35 @@ Page {
         }
         MainPageButton {
             id: buttonSwitchLiveMode
-            property var checked: capture.camera.active
+            // property var checked: myCamera.getTriggerMode()
+            property var checked: liveVideo.visible
+
             iconSource: checked ? "Resources/icons/live_tv.svg" : "Resources/icons/tv_off.svg"
             textlabel: "Live картинка"
             marea.onClicked: {
-                console.log("onClicked on ", textlabel);
-                checked: capture.camera.active;
-                onClicked: {
-                    capture.camera.active ^= true;
-                }
+                
+                liveVideo.visible^=1;
+                checked= liveVideo.visible;
+                if (liveVideo.visible) image.visible=false;
+                // checked=myCamera.getTriggerMode();
+                // if (checked)
+                //     myCamera.resetTriggerMode();
+                // else
+                //     myCamera.setTriggerMode();
+
+                // console.log("TriggerMode ", myCamera.getTriggerMode());
+
             }
         }
+        MainPageButton {
+            id: buttonInitCamera
+            textlabel: "Инициализация"
+            marea.onClicked: {  
+                myCamera.initCamera();
+                
+            }
+        }
+        
         MainPageButton {
             id: buttonSwitchLight
             iconSource: "Resources/icons/lightbulb.svg"
@@ -172,169 +211,13 @@ Page {
         onAccepted: {
             // Записываем локальный путь в текстовое поле ввода
             pathToChosenImage = fileDialog.selectedFile;
-        }
-    }
-    // RowLayout {
-    //     id: rowLayout
-    //     x: 0
-    //     y: 0
-    //     width: 385
-    //     height: 890
+            liveVideo.visible = false;
+            image.visible = true;
 
-    //     ColumnLayout {
-    //         width: 477
-    //         height: 825
-
-    //         Layout.fillWidth: true
-    //         Layout.fillHeight: true
-    //         Layout.maximumWidth: parent.width
-    //         spacing: 10
-
-    //         ColumnLayout {
-    //             Layout.fillWidth: true
-    //             Layout.fillHeight: true
-    //             FileDialog {
-    //                 id: fileDialog
-    //                 title: "Выберите файл изображения"
-    //                 // nameFilters: ["Изображения (*.jpg *.png *.bmp *.jpeg)"]
-    //                 onAccepted: {
-    //                     // Записываем локальный путь в текстовое поле ввода
-    //                     pathToChosenImage = fileDialog.selectedFile;
-    //                 }
-    //             }
-
-    //             anchors.margins: 20
-    //             spacing: 15
-
-    //             // RowLayout {
-    //             //     Layout.fillWidth: true
-    //             //     spacing: 5
-
-    //             //     // TextField {
-    //             //     //     id: pathInput
-    //             //     //     placeholderText: "путь к файлу"
-    //             //     //     Layout.fillWidth: true
-    //             //     //     font.pointSize: 11
-    //             //     // }
-
-    //             //     // Button {
-    //             //     //     text: "найти файл"
-    //             //     //     onClicked: fileDialog.open()
-    //             //     // }
-    //             // }
-
-    //             // Button {
-    //             //     text: "Сканировать"
-    //             //     Layout.alignment: Qt.AlignHCenter
-    //             //     font.bold: true
-    //             //     highlighted: true
-
-    //             //     onClicked: {
-    //             //         if (pathToChosenImage.trim() === "") {
-    //             //             resultArea.text = "Ошибка: Сначала укажите путь к файлу!";
-    //             //             return;
-    //             //         }
-    //             //         resultArea.text = "идет обрыботка";
-
-    //             //         let outputLog = analyzer.processImage(pathToChosenImage);
-    //             //         var newline1 = outputLog.indexOf("/n");
-    //             //         let datetime = outputLog.substring(0, newline1);
-    //             //         resultArea.text = outputLog;
-    //             //     }
-    //             // }
-    //             // Button {
-    //             //     text: "Снимок"
-    //             //     Layout.alignment: Qt.AlignHCenter
-    //             //     font.bold: true
-    //             //     highlighted: true
-    //             //     function pad(n) {
-    //             //         return n < 10 ? "0" + n : n;
-    //             //     }
-
-    //             //     onClicked: {
-    //             //         var now = new Date();
-    //             //         var name = now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) + "_" + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds()) + ".png";
-    //             //         var path = "C:/projects/qt/QmlAppTest/History/" + name;
-    //             //         analyzer.imgPath = "file:///" + path;
-    //             //         imageCapture.captureToFile(path);
-    //             //     }
-    //             // }
-
-    //             // RadioButton {
-    //             //     text: "LIVE CAMERA"
-    //             //     Layout.alignment: Qt.AlignHCenter
-    //             //     font.bold: true
-
-    //             //     checked: capture.camera.active
-    //             //     onClicked: {
-    //             //         capture.camera.active ^= true;
-    //             //     }
-    //             // }
-
-    // Label {
-    //     text: "Лог:"
-    //     font.bold: true
-    // }
-    // ScrollView {
-    //     Layout.fillWidth: true
-    //     Layout.fillHeight: true
-    //     TextArea {
-    //         id: resultArea
-    //         readOnly: true
-    //         placeholderText: "нихуя не происходит"
-    //         color: "white"
-    //         background: Rectangle {
-    //             border.color: "#cccccc"
-    //             color: "transparent"
-    //         }
-    //         font.pointSize: 10
-    //     }
-    // }
-    //         }
-    //     }
-    // }
-
-    MediaDevices {
-        id: devices
-    }
-    Camera {
-        id: myCameraId
-        cameraDevice: devices.videoInputs[camerasComboBox.currentIndex] ? devices.videoInputs[camerasComboBox.currentIndex] : devices.defaultVideoInput
-        focusMode: Camera.FocusModeAutoNear
-        onErrorOccurred: console.log("camera error:" + errorString)
-        active: cameraPermission.status === Qt.PermissionStatus.Granted // for Qt 6.6 and above
-
-    }
-    CaptureSession {
-        id: capture
-        camera: myCameraId
-        imageCapture: ImageCapture {
-            id: imageCapture
-            quality: ImageCapture.VeryHighQuality
-            onImageCaptured: {
-                console.log("onImageCaptured ");
-            }
-            onImageSaved: {
-                console.log("onImageSaved ");
-                image.source = analyzer.imgPath;
-                myCameraId.active = false;
-                analyzer.processImage(analyzer.imgPath);
-            }
-        }
-        videoOutput: myVideoOutputID
-        recorder: MediaRecorder {
-            id: recorder
-            videoFrameRate: 30
         }
     }
 
-    CameraPermission {
-        id: cameraPermission
-        Component.onCompleted: {
-            if (status !== Qt.PermissionStatus.Granted);
-            request();
-        }
-    }
+  
 
     ColumnLayout {
         anchors.centerIn: parent
@@ -344,7 +227,7 @@ Page {
         height: 900
 
         anchors.leftMargin: 100
-        anchors.topMargin: 0
+        
         Rectangle {
             id: recoRectangle
 
@@ -354,36 +237,96 @@ Page {
             border.width: 1
             border.color: "#203030"
 
-            VideoOutput {
-                id: myVideoOutputID
-                visible: myCameraId.active ? true : false
-                anchors.fill: recoRectangle
-            }
+            Image {
+                id: liveVideo
+                anchors.fill: parent
+                anchors.bottomMargin: 150
+                cache: false
+                fillMode: Image.PreserveAspectFit
+                visible: true
+                property int frameCounter: 0
+                source: "image://myimageprovider/live"
 
+                function refresh() {
+                    frameCounter++;
+                    source = "image://myimageprovider/live?timestamp=" + frameCounter;
+                }
+            }
             Image {
                 id: image
-                cache: false // Обязательно!
+                anchors.bottomMargin: 150
+
+                cache: false
                 anchors.fill: parent
                 source: analyzer.imgPath
-                fillMode: Image.PreserveAspectFit
-            }
-        }
+                
+                function onResultReady() {
+                    console.log("onResultReady is called, newPath is " + analyzer.imgPath);
+                    var path = analyzer.imgPath;
+                    source = path;
 
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.fillHeight: false
-            visible: devices.videoInputs.length > 1
-            Label {
-                text: qsTr("Camera: ")
-                Layout.fillWidth: false
-            }
-            ComboBox {
-                id: camerasComboBox
-                Layout.fillWidth: true
-                model: devices.videoInputs
-                textRole: "description"
-                currentIndex: 0
+                }
+                fillMode: Image.PreserveAspectFit
+                visible: false
             }
         }
+        
+
+        // RowLayout {
+        //     Layout.fillWidth: true
+        //     Layout.fillHeight: false
+        //     visible: devices.videoInputs.length > 1
+        //     Label {
+        //         text: qsTr("Camera: ")
+        //         Layout.fillWidth: false
+        //     }
+        //     ComboBox {
+        //         id: camerasComboBox
+        //         Layout.fillWidth: true
+        //         model: devices.videoInputs
+        //         textRole: "description"
+        //         currentIndex: 0
+        //     }
+        // }
     }
 }
+
+
+ // Camera {
+    //     id: myCameraId
+    //     cameraDevice: devices.videoInputs[camerasComboBox.currentIndex] ? devices.videoInputs[camerasComboBox.currentIndex] : devices.defaultVideoInput
+    //     focusMode: Camera.FocusModeAutoNear
+    //     onErrorOccurred: console.log("camera error:" + errorString)
+    //     active: cameraPermission.status === Qt.PermissionStatus.Granted // for Qt 6.6 and above
+
+    // }
+    // CaptureSession {
+    //     id: capture
+    //     camera: myCameraId
+    //     imageCapture: ImageCapture {
+    //         id: imageCapture
+    //         quality: ImageCapture.VeryHighQuality
+    //         onImageCaptured: {
+    //             console.log("onImageCaptured ");
+    //         }
+    //         onImageSaved: {
+    //             console.log("onImageSaved ");
+    //             image.source = analyzer.imgPath;
+    //             myCameraId.active = false;
+    //             analyzer.processImage(analyzer.imgPath);
+    //         }
+    //     }
+    //     videoOutput: myVideoOutputID
+    //     recorder: MediaRecorder {
+    //         id: recorder
+    //         videoFrameRate: 30
+    //     }
+    // }
+
+    // CameraPermission {
+    //     id: cameraPermission
+    //     Component.onCompleted: {
+    //         if (status !== Qt.PermissionStatus.Granted);
+    //         request();
+    //     }
+    // }

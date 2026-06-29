@@ -1,7 +1,7 @@
 #include "barcodeanalyzer.h"
 #include "opencv2/imgcodecs.hpp"
 
-//  #define DebugShowImages 0
+//   #define DebugShowImages 0
 
 // #define CROP_IMAGE_BY_REEL 1
 
@@ -215,12 +215,11 @@ QString BarcodeAnalyzer::processImage(const QString &fileUrlOrPath) {
     if (img.empty()) return QString("Ошибка: не удалось открыть %1").arg(localPath);
     QFileInfo fileInfo(localPath);
     QDateTime dt = QDateTime::currentDateTime();
-    QString dateTimeString = dt.toString("yy-MM-dd_HH-mm-ss");
+    QString dateTimeString = dt.toString("yyyy-MM-dd_HH-mm-ss");
     QString resultReport = QString("");
-    if (dateTimeString.isEmpty() || dateTimeString.isNull()) dateTimeString = QString("yy-MM-dd_HH-mm-ss");
-    QString outputImgName = fileInfo.absolutePath() + QString("/") + dateTimeString + QString(".") + fileInfo.suffix();
+    if (dateTimeString.isEmpty() || dateTimeString.isNull()) dateTimeString = QString("yyyy-MM-dd_HH-mm-ss");
+    QString outputImgName = fileInfo.absolutePath() + QString("/") + dateTimeString +"_result"+ QString(".") + fileInfo.suffix();
     QString outputJsonName = fileInfo.absolutePath() + QString("/") + dateTimeString + QString(".json");
-    cout << "outputImgName=" << outputImgName.toStdString() << endl;
     cout << "outputJsonName=" << outputJsonName.toStdString() << endl;
     // 1 ОБРЕЗКА ПО КАТУШКЕ
 //    double angle1 = DetectRectangle(img);
@@ -250,7 +249,8 @@ QString BarcodeAnalyzer::processImage(const QString &fileUrlOrPath) {
         int exposure;
         int blackLevel;
     };
-    std::vector<exposureParams> exposureVariants = {{7, 55}, {5, 55}, {5, 40}, {4, 40}, {1, 0}};
+    // std::vector<exposureParams> exposureVariants = {{7, 55}, {5, 55}, {5, 40}, {4, 40}, {1, 0}};
+    std::vector<exposureParams> exposureVariants = {{1, 0}};
     // 5 ПРИМЕНЕНИЕ ВАРИАНТОВ ЭКСПОЗИЦИИ К НЕСКОЛЬКИМ КАРТИНКАМ В ВЕКТОРЕ
 
     std::vector<cv::Mat> exposuredImgs;
@@ -276,7 +276,7 @@ QString BarcodeAnalyzer::processImage(const QString &fileUrlOrPath) {
     ZXing::ReaderOptions options;
     options.setTryRotate(true);
     options.setBinarizer(ZXing::Binarizer::LocalAverage);
-    options.setFormats(ZXing::BarcodeFormat::AllLinear);
+    options.setFormats(ZXing::BarcodeFormat::All);
 
     // 7 ЗАПИСЬ МАКСИМАЛЬНОГО КОЛ-ВА ШТРИХКОДОВ, ЗАПИСЬ ЛУЧШЕГО СПИСКА БАРКОДОВ СРЕДИ ВСЕХ ВАРИАНТОВ ЭКСПОЗИЦИИ
     int barcodeQtys[exposuredImgs.size()] = {0};
@@ -300,10 +300,10 @@ QString BarcodeAnalyzer::processImage(const QString &fileUrlOrPath) {
              shortShow(BestExposuredImg);
         }
     }
-    if (bestBarcodes.empty()) return QString("1D Barcides not found.");
+    if (bestBarcodes.empty()) return QString("1D Barcodes not found.");
 
     BarcodeList bclist;
-    resultReport.append(QString("Найдено штрихкодов: %1\n").arg(bestBarcodes.size()));
+    resultReport.append(QString("Найдено баркодов: %1\n").arg(bestBarcodes.size()));
     for (size_t idx = 0; idx < bestBarcodes.size(); ++idx) {
         const auto &barcode = bestBarcodes[idx];
         if (!barcode.isValid()) continue;
@@ -346,10 +346,12 @@ QString BarcodeAnalyzer::processImage(const QString &fileUrlOrPath) {
     cout << "This pattern matches template: " << FoundTemplate.toStdString() << "\n";
 
     // bclist.saveToFile(outputJsonName);
+
     cv::imwrite(outputImgName.toStdString(), BestExposuredImg);
-    cout << "getImagePath().toStdString()=" << getImgPath().toStdString() << endl;
-    QString finalImgPath = QString("file:///") + fileInfo.absolutePath() + QString("/") + dateTimeString + QString(".") + fileInfo.suffix();
+    cout << "outputImgName.toStdString()=" << outputImgName.toStdString() << endl;
+    QString finalImgPath = QString("file:///") + fileInfo.absolutePath() + QString("/") + dateTimeString + "_result" + QString(".") + fileInfo.suffix();
     setImgPath(finalImgPath);
+    emit resultReady();
     return resultReport;
 }
 
@@ -440,7 +442,8 @@ using namespace cv;
         int exposure;
         int blackLevel;
     };
-   exposureParams exposureVariants[]= {{1, 0},{4, 40}, {7, 55}, {5, 60}, {4, 70}, {3, 80}, };
+//    exposureParams exposureVariants[]= {{1, 0},{4, 40}, {7, 55}, {5, 60}, {4, 70}, {3, 80}, };
+    exposureParams exposureVariants[]= {{1, 0}};
     Mat exposedPictures[sizeof(exposureVariants)/sizeof(exposureParams)];
 
 
@@ -452,13 +455,13 @@ using namespace cv;
     
 
 
-    imshow("original Image", src);
+    // imshow("original Image", src);
 
     for (int i = 0; i < sizeof(exposureVariants)/sizeof(exposureParams); i++){
   
     Mat srcImgToDrawOn = src.clone();
     Mat srccpy = src.clone();
-    imshow("original Image", src);
+    //imshow("original Image", src);
     
     // Convert to graycsale
     Mat img_gray8;
@@ -779,6 +782,16 @@ void BarcodeAnalyzer::shortShow(const cv::Mat &matrix) {
     cv::destroyWindow("shortShow");
 #endif
 }
+void BarcodeAnalyzer::shortShow(const cv::Mat &matrix, cv::String name) {
+#ifdef DebugShowImages
+    cv::namedWindow(name, cv::WINDOW_KEEPRATIO | cv::WINDOW_NORMAL);
+    cv::moveWindow("shortShow", 250, 0);
+    cv::imshow("shortShow", matrix);
+    cv::waitKey(10000);
+    cv::destroyWindow("shortShow");
+#endif
+}
+
 
 QStringList BarcodeAnalyzer::loadAllTemlateFileNames() {
     QDir dir(templatesFolder);
