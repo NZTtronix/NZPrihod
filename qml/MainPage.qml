@@ -154,10 +154,11 @@ Page {
             marea.onClicked: {
                 
                 console.log("onClicked on ", textlabel);
+                
                 resultArea.text = "идет обрыботка";
                 liveVideo.visible = false;
                 image.visible = true;
-
+                image.source = pathToChosenImage;
                 let outputLog = analyzer.processImage(pathToChosenImage);
                 var newline1 = outputLog.indexOf("/n");
                 let datetime = outputLog.substring(0, newline1);
@@ -211,9 +212,10 @@ Page {
         onAccepted: {
             // Записываем локальный путь в текстовое поле ввода
             pathToChosenImage = fileDialog.selectedFile;
+            console.log("selected file is "+pathToChosenImage);
+            image.source = pathToChosenImage;
             liveVideo.visible = false;
             image.visible = true;
-
         }
     }
 

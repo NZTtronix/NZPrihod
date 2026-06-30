@@ -1,11 +1,11 @@
 #include "barcodeanalyzer.h"
 #include "opencv2/imgcodecs.hpp"
 
-//   #define DebugShowImages 0
+#define DebugShowImages 0
 
-// #define CROP_IMAGE_BY_REEL 1
+#define CROP_IMAGE_BY_REEL 1
 
-#define EXPECTED_REEL_RADIUS (900)
+#define EXPECTED_REEL_RADIUS (950)
 
 static std::random_device rd;
 
@@ -60,7 +60,7 @@ QString BarcodeAnalyzer::processTemplateImage(QString templateName) {
         int exposure;
         int blackLevel;
     };
-    std::vector<exposureParams> exposureVariants = { {1, 0}};
+    std::vector<exposureParams> exposureVariants = {{1, 0}};
     // 5 ПРИМЕНЕНИЕ ВАРИАНТОВ ЭКСПОЗИЦИИ К НЕСКОЛЬКИМ КАРТИНКАМ В ВЕКТОРЕ
 
     std::vector<cv::Mat> exposuredImgs;
@@ -190,9 +190,9 @@ bool BarcodeAnalyzer::copyImageToTemplatesFolderAsChosenTemplateImage(QString te
     return true;
 }
 
-bool BarcodeAnalyzer::addNewEmptyTemplateJson( const QString &filePath) {
-    QString fpath = filePath +  "new_template.json";
-    QString jsonstr =  "{  \"name\": \"new_template\", \"barcodes\": [] }";
+bool BarcodeAnalyzer::addNewEmptyTemplateJson(const QString &filePath) {
+    QString fpath = filePath + "new_template.json";
+    QString jsonstr = "{  \"name\": \"new_template\", \"barcodes\": [] }";
     saveTo(jsonstr, fpath);
     refreshMaterialTemplates();
     return true;
@@ -211,56 +211,56 @@ QString BarcodeAnalyzer::processImage(const QString &fileUrlOrPath) {
     int variant = 0;
     QString localPath = fileUrlOrPath;
     if (localPath.startsWith("file:///")) localPath = QUrl(localPath).toLocalFile();
-    cv::Mat img = cv::imread(localPath.toStdString());
+    cv::Mat img = cv::imread(localPath.toStdString(), cv::IMREAD_GRAYSCALE);
     if (img.empty()) return QString("Ошибка: не удалось открыть %1").arg(localPath);
     QFileInfo fileInfo(localPath);
     QDateTime dt = QDateTime::currentDateTime();
     QString dateTimeString = dt.toString("yyyy-MM-dd_HH-mm-ss");
     QString resultReport = QString("");
     if (dateTimeString.isEmpty() || dateTimeString.isNull()) dateTimeString = QString("yyyy-MM-dd_HH-mm-ss");
-    QString outputImgName = fileInfo.absolutePath() + QString("/") + dateTimeString +"_result"+ QString(".") + fileInfo.suffix();
+    QString outputImgName = fileInfo.absolutePath() + QString("/") + dateTimeString + "_result" + QString(".") + fileInfo.suffix();
     QString outputJsonName = fileInfo.absolutePath() + QString("/") + dateTimeString + QString(".json");
     cout << "outputJsonName=" << outputJsonName.toStdString() << endl;
     // 1 ОБРЕЗКА ПО КАТУШКЕ
-//    double angle1 = DetectRectangle(img);
     cv::Mat image = cropImageByReel(img);
-
+    shortShow(image);
     // 2 ВЫЧИСЛЕНИЕ УГЛА
-    double angle = DetectRectangle(img);
+    double angle = DetectRectangle(image);
     // 3 ПОВОРОТ ПО УГЛУ ДО КРАТНОГО 90
+    return "RETRUNED";
     cv::Point2f center((float)image.cols / 2.0f, (float)image.rows / 2.0f);
     cv::Mat M = cv::getRotationMatrix2D(center, angle, 1.0);
 
-    double absCos = std::abs(M.at<double>(0,0));
-    double absSin = std::abs(M.at<double>(0,1));
+    double absCos = std::abs(M.at<double>(0, 0));
+    double absSin = std::abs(M.at<double>(0, 1));
     int newW = int(image.rows * absSin + image.cols * absCos);
     int newH = int(image.rows * absCos + image.cols * absSin);
-    M.at<double>(0,2) += (newW - image.cols) / 2.0;
-    M.at<double>(1,2) += (newH - image.rows) / 2.0;
+    M.at<double>(0, 2) += (newW - image.cols) / 2.0;
+    M.at<double>(1, 2) += (newH - image.rows) / 2.0;
 
     cv::Mat rotated;
     cv::warpAffine(image, rotated, M, cv::Size(newW, newH), cv::INTER_LINEAR, cv::BORDER_REPLICATE);
     // rotated.clone();
     shortShow(rotated);
-
+    return "return";
     // 4 УСТАНОВКА ЭКСПОЗИЦИИ И УРОВНЯ ЧЕРНОГО В НЕСКОЛЬКИХ ВАРИАНТАХ
 
-    struct exposureParams {
-        int exposure;
-        int blackLevel;
-    };
+    // struct exposureParams {
+    //     int exposure;
+    //     int blackLevel;
+    // };
     // std::vector<exposureParams> exposureVariants = {{7, 55}, {5, 55}, {5, 40}, {4, 40}, {1, 0}};
-    std::vector<exposureParams> exposureVariants = {{1, 0}};
+    // std::vector<exposureParams> exposureVariants = {{1, 0}};
     // 5 ПРИМЕНЕНИЕ ВАРИАНТОВ ЭКСПОЗИЦИИ К НЕСКОЛЬКИМ КАРТИНКАМ В ВЕКТОРЕ
 
-    std::vector<cv::Mat> exposuredImgs;
-    exposuredImgs.reserve(exposureVariants.size());
-    for (const auto &params : exposureVariants) {
-        cv::Mat dst;
-        adjustExposureWithBlackLevel(rotated, dst, params.exposure, params.blackLevel);
-        exposuredImgs.push_back(dst);
-        shortShow(dst);
-    }
+    // std::vector<cv::Mat> exposuredImgs;
+    // exposuredImgs.reserve(exposureVariants.size());
+    // for (const auto &params : exposureVariants) {
+    //     cv::Mat dst;
+    //     adjustExposureWithBlackLevel(rotated, dst, params.exposure, params.blackLevel);
+    //     exposuredImgs.push_back(dst);
+    //     shortShow(dst);
+    // }
     // cv::Mat exposured;
 
     // adjustExposureWithBlackLevel(image, exposured, exposureVariants[2].exposure, exposureVariants[2].blackLevel);
@@ -271,41 +271,24 @@ QString BarcodeAnalyzer::processImage(const QString &fileUrlOrPath) {
 
     uint8_t maxBarcodesQty = 0;
     int maxQtyVariant = 0;
-    cv::Mat BestExposuredImg;
+
     ZXing::Barcodes bestBarcodes;
     ZXing::ReaderOptions options;
     options.setTryRotate(true);
+    options.setTryInvert(true);
+    options.setTryHarder(true);
     options.setBinarizer(ZXing::Binarizer::LocalAverage);
     options.setFormats(ZXing::BarcodeFormat::All);
 
-    // 7 ЗАПИСЬ МАКСИМАЛЬНОГО КОЛ-ВА ШТРИХКОДОВ, ЗАПИСЬ ЛУЧШЕГО СПИСКА БАРКОДОВ СРЕДИ ВСЕХ ВАРИАНТОВ ЭКСПОЗИЦИИ
-    int barcodeQtys[exposuredImgs.size()] = {0};
+    auto imgv = ZXing::ImageView(rotated.data, rotated.cols, rotated.rows, ZXing::ImageFormat::Lum);
+    auto brcds = ZXing::ReadBarcodes(imgv, options);
 
-    for (size_t i = 0; i < exposuredImgs.size(); ++i) {
-        printf("exposuredImgs.size() = %d\n", exposuredImgs.size());
-        auto imgv = ZXing::ImageView(exposuredImgs[i].data, exposuredImgs[i].cols, exposuredImgs[i].rows, ZXing::ImageFormat::Lum);
-        
- 
-        auto brcds = ZXing::ReadBarcodes(imgv, options);
-
-        barcodeQtys[i] = brcds.size();
-        printf("barcodeQtys[%d].size() = %d\n", i, brcds.size());
-
-        if (brcds.size() > maxBarcodesQty) {
-            maxQtyVariant = i;
-            maxBarcodesQty = brcds.size();
-            BestExposuredImg = exposuredImgs[i].clone();
-            auto BestImgv = ZXing::ImageView(BestExposuredImg.data, BestExposuredImg.cols, BestExposuredImg.rows, ZXing::ImageFormat::Lum);
-            bestBarcodes = ZXing::ReadBarcodes(BestImgv, options);
-             shortShow(BestExposuredImg);
-        }
-    }
-    if (bestBarcodes.empty()) return QString("1D Barcodes not found.");
+    if (brcds.empty()) return QString("1D & 2D Barcodes not found.");
 
     BarcodeList bclist;
-    resultReport.append(QString("Найдено баркодов: %1\n").arg(bestBarcodes.size()));
-    for (size_t idx = 0; idx < bestBarcodes.size(); ++idx) {
-        const auto &barcode = bestBarcodes[idx];
+    resultReport.append(QString("Найдено баркодов: %1\n").arg(brcds.size()));
+    for (size_t idx = 0; idx < brcds.size(); ++idx) {
+        const auto &barcode = brcds[idx];
         if (!barcode.isValid()) continue;
         bclist.items.emplace_back();
         bclist.items.back().set(barcode);
@@ -313,19 +296,13 @@ QString BarcodeAnalyzer::processImage(const QString &fileUrlOrPath) {
     }
     std::sort(bclist.items.begin(), bclist.items.end(), [](const MyBarcodeInfo &a, const MyBarcodeInfo &b) { return a.width > b.width; });
 
-
-
-
-
-
     // 9 ВЫВОД ИНФОРМАЦИИ НА ИЗОБРАЖЕНИЕ И ПОДГОТОВКА ОТЧЕТА
-    cvtColor(BestExposuredImg, BestExposuredImg, cv::COLOR_GRAY2BGR);
+    cvtColor(rotated, rotated, cv::COLOR_GRAY2BGR);
 
     for (size_t idx = 0; idx < bclist.items.size(); ++idx) {
-        const auto &barcode = bestBarcodes[bclist.items[idx].localNum];
+        const auto &barcode = brcds[bclist.items[idx].localNum];
         resultReport += QString("[%1]:").arg(idx + 1);
         resultReport += bclist.items[idx].ToQstring();
-
         auto position = barcode.position();
         std::vector<cv::Point> points;
         cv::Scalar currentcolor = getcolor();
@@ -333,10 +310,10 @@ QString BarcodeAnalyzer::processImage(const QString &fileUrlOrPath) {
             points.push_back(cv::Point(position[i].x, position[i].y));
         }
         for (size_t i = 0; i < 4; ++i) {
-            cv::line(BestExposuredImg, points[i], points[(i + 1) % 4], currentcolor, 5);
+            cv::line(rotated, points[i], points[(i + 1) % 4], currentcolor, 5);
         }
         std::string label = "#" + std::to_string(idx + 1);
-        cv::putText(BestExposuredImg, label, points[0] + cv::Point(0, -12), cv::FONT_HERSHEY_SIMPLEX, 2.0, currentcolor, 4);
+        cv::putText(rotated, label, points[0] + cv::Point(0, -12), cv::FONT_HERSHEY_SIMPLEX, 2.0, currentcolor, 4);
     }
 
     // 10 СОХРАНЕНИЕ ИЗОБРАЖЕНИЯ И ОТЧЕТА, СРАВНЕНИЕ С ШАБЛОНАМИ ПРОИЗВОДИТЕЛЕЙ
@@ -347,7 +324,7 @@ QString BarcodeAnalyzer::processImage(const QString &fileUrlOrPath) {
 
     // bclist.saveToFile(outputJsonName);
 
-    cv::imwrite(outputImgName.toStdString(), BestExposuredImg);
+    cv::imwrite(outputImgName.toStdString(), rotated);
     cout << "outputImgName.toStdString()=" << outputImgName.toStdString() << endl;
     QString finalImgPath = QString("file:///") + fileInfo.absolutePath() + QString("/") + dateTimeString + "_result" + QString(".") + fileInfo.suffix();
     setImgPath(finalImgPath);
@@ -386,58 +363,73 @@ void BarcodeAnalyzer::adjustExposureWithBlackLevel(const cv::Mat &src, cv::Mat &
     cv::LUT(src, lookUpTable, dst);
 }
 
-cv::Mat BarcodeAnalyzer::cropImageByReel(const cv::Mat &src) {
-    #ifdef CROP_IMAGE_BY_REEL 
 
+cv::Mat cropImageByReel(const cv::Mat &src) {
     double coeff = 0.2;
-
+    using namespace cv; 
+    const float EXPECTED_REEL_RADIUS = 950;
     int expectedRadius = EXPECTED_REEL_RADIUS * coeff;
     int expectedRadiusMin = expectedRadius * 0.75;
     int expectedRadiusMax = expectedRadius * 1.25;
-    int minArea = expectedRadiusMin * expectedRadiusMin * 3.1415;
-    int maxArea = expectedRadiusMax * expectedRadiusMax * 3.1415;
-    int needArea = expectedRadius * expectedRadius * 3.1415;
 
-    using namespace cv;
+    double pi = 3.1415;
+    (void)pi;
+
     Mat mat = src.clone();
     resize(src, mat, Size(0, 0), coeff, coeff, INTER_LINEAR);
-    cvtColor(mat, mat, cv::COLOR_BGR2GRAY);
-    shortShow(mat);
-    std::vector<cv::Vec3f> circles;
-    HoughCircles(mat, circles, cv::HOUGH_GRADIENT, 1, mat.rows / 8, 100, 30, expectedRadiusMin, expectedRadiusMax);
-    if (circles.size() == 0) return src;
-    for (int i = 0; i < circles.size(); i++) {
-        cv::circle(mat, {(int)circles[i][0], (int)circles[i][1]}, (int)circles[i][2], (distr(gen), distr(gen), distr(gen)), 1);
-    }
+    if (mat.empty() || mat.cols <= 0 || mat.rows <= 0) return src;
+    // shortShow(mat, "afterresize");
+
+    vector<Vec3f> circles;
+    HoughCircles(mat, circles, HOUGH_GRADIENT, 1, mat.rows / 8, 100, 30, expectedRadiusMin, expectedRadiusMax);
+
+    if (circles.empty()) return src;
+
     int cx = cvRound(circles[0][0]);
     int cy = cvRound(circles[0][1]);
     int r = cvRound(circles[0][2]);
 
-    cv::Rect roiRectC(cx - r, cy - r, 2 * r, 2 * r);
-    cv::Rect bounds(0, 0, mat.cols, mat.rows);
+    Rect roiRectC(cx - r, cy - r, 2 * r, 2 * r);
+    Rect bounds(0, 0, mat.cols, mat.rows);
     roiRectC &= bounds;
+
+    if (roiRectC.width <= 0 || roiRectC.height <= 0) return src;
+
     mat = mat(roiRectC).clone();
 
-    cv::Rect trueRoi;
-    trueRoi.x = roiRectC.x / coeff;
-    trueRoi.y = roiRectC.y / coeff;
-    trueRoi.width = roiRectC.width / coeff;
-    trueRoi.height = roiRectC.height / coeff;
+    Rect trueRoi;
+    trueRoi.x = cvRound(roiRectC.x / coeff);
+    trueRoi.y = cvRound(roiRectC.y / coeff);
+    trueRoi.width = cvRound(roiRectC.width / coeff);
+    trueRoi.height = cvRound(roiRectC.height / coeff);
 
-    cv::Mat croppedSrc = src(trueRoi).clone();
-    cvtColor(croppedSrc, croppedSrc, cv::COLOR_BGR2GRAY);
-        return croppedSrc;
+    Rect srcBounds(0, 0, src.cols, src.rows);
+    trueRoi &= srcBounds;
 
-    #else
-     cv::Mat mat = src.clone();
-    cvtColor(mat, mat, cv::COLOR_BGR2GRAY);
-        return mat;
-    #endif
+    if (trueRoi.width <= 0 || trueRoi.height <= 0) return src;
+
+    Mat out = src(trueRoi).clone();
+    uint8_t avg = mean(out, noArray())[0];
+
+    // центр/радиус окружности в координатах out-матрицы
+    Point c(cx / coeff - trueRoi.x, cy / coeff - trueRoi.y);
+    int rr = cvRound(r / coeff);
+
+    // маска: 0 - снаружи, 255 - внутри
+    Mat mask(out.rows, out.cols, CV_8UC1, Scalar(0));
+    circle(mask, c, rr, Scalar(255), -1);
+
+    // закрасить снаружи белым
+    out.setTo(Scalar(avg, avg, avg), 255 - mask);
+    shortShow(out, "avg");
+
+    return out;
 }
+/*
 double BarcodeAnalyzer::DetectRectangle(cv::Mat src) {
 using namespace std;
 using namespace cv;
-    
+
     struct exposureParams {
         int exposure;
         int blackLevel;
@@ -452,17 +444,17 @@ using namespace cv;
         shortShow(exposedPictures[i]);
 
     }
-    
+
 
 
     // imshow("original Image", src);
 
     for (int i = 0; i < sizeof(exposureVariants)/sizeof(exposureParams); i++){
-  
+
     Mat srcImgToDrawOn = src.clone();
     Mat srccpy = src.clone();
     //imshow("original Image", src);
-    
+
     // Convert to graycsale
     Mat img_gray8;
     Mat img_gray;
@@ -471,13 +463,12 @@ using namespace cv;
     shortShow(img_gray8);
 
 
-    shortShow(img_gray8);
 
-    img_gray8.convertTo(img_gray, CV_32F);                
-    
+    img_gray8.convertTo(img_gray, CV_32F);
+
     shortShow(img_gray);
 
-    
+
     // Blur the image for better edge detection
     Mat img_blur;
     GaussianBlur(img_gray, img_blur, Size(5,5), 0,0);
@@ -488,19 +479,19 @@ using namespace cv;
     Sobel(img_blur, gradY, CV_32F, 0, 1, 3);
     // amplitude = sqrt(gradX^2 + gradY^2)
     Mat gradX2, gradY2, amplitude;
+    // subtract(gradX, gradY)l
     multiply(gradX, gradX, gradX2);
     multiply(gradY, gradY, gradY2);
     add(gradX2, gradY2, amplitude);
-    sqrt(amplitude, amplitude); // теперь amplitude — амплитуда в CV_32F
-    // shortShow(amplitude);
-    
+    sqrt(amplitude, amplitude);
+
     double gmin, gmax;
     minMaxLoc(amplitude, &gmin, &gmax);
     cout<< "gmin = " << gmin << "gmax = " << gmax << endl;
     amplitude.convertTo(gradient, CV_8U, 255.0/(gmax) );
     shortShow(gradient);
 
-    
+
     double minValue =0; double maxValue=0;
 
     cv::minMaxLoc(gradient, &minValue, &maxValue);
@@ -512,17 +503,17 @@ using namespace cv;
     Mat kernel = cv::getStructuringElement(cv::MORPH_RECT,cv::Size(7,7));
     Mat kernelo = cv::getStructuringElement(cv::MORPH_RECT,cv::Size(3,3));
 
-    Mat morphology; 
+    Mat morphology;
     morphologyEx(gradient, morphology, cv::MORPH_CLOSE, kernel);
     shortShow(morphology);
-    
-    
+
+
     morphologyEx(morphology, morphology, cv::MORPH_OPEN, kernelo);
     shortShow(morphology);
-    
+
     morphologyEx(morphology, morphology, cv::MORPH_CLOSE, kernel);
     shortShow(morphology);
-    
+
     vector<vector<Point>> contours;
     findContours(morphology, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
     double bestArea;
@@ -546,7 +537,7 @@ using namespace cv;
         if (fillPercent < 0.7) continue;
 
         cout<<  "w x h = "<<w <<"x"<<h<<"="<<w*h<<endl;
-        cout<< "contour area / rectangleArea = "<< area <<"/ " << w*h << "= " << fillPercent << endl; 
+        cout<< "contour area / rectangleArea = "<< area <<"/ " << w*h << "= " << fillPercent << endl;
         if (area > bestArea) {
             bestcontour = contour;
             bestArea = area;
@@ -576,14 +567,120 @@ using namespace cv;
             cout<<" bestRect.angle is "<<  bestRect.angle <<endl;
         return bestRect.angle;
 
-    } 
-    
+    }
+
 }
     return 0;
 }
+*/
 
+double BarcodeAnalyzer::DetectRectangle(cv::Mat src) {
+    using namespace std;
+    using namespace cv;
+    Mat img_gray8 = src.clone();
+    Mat img_gray;
+    img_gray8.convertTo(img_gray, CV_32F);
+    shortShow(img_gray, "img_gray (was 8bit now 32?)");
 
+    Mat img_blur;
+    GaussianBlur(img_gray, img_blur, Size(5, 5), 0, 0);
+    shortShow(img_blur);
 
+        Mat gradX, gradY, gradient;
+        Sobel(img_blur, gradX, CV_32F, 1, 0, 3);
+        Sobel(img_blur, gradY, CV_32F, 0, 1, 3);
+        // amplitude = sqrt(gradX^2 + gradY^2)
+        Mat gradX2, gradY2, amplitude;
+        // subtract(gradX, gradY)l
+        multiply(gradX, gradX, gradX2);
+        multiply(gradY, gradY, gradY2);
+        add(gradX2, gradY2, amplitude);
+        sqrt(amplitude, amplitude);
+
+        double gmin, gmax;
+        minMaxLoc(amplitude, &gmin, &gmax);
+        cout << "gmin = " << gmin << "gmax = " << gmax << endl;
+        amplitude.convertTo(gradient, CV_8U, 255.0 / (gmax));
+        shortShow(gradient);
+
+        double minValue = 0;
+        double maxValue = 0;
+
+        cv::minMaxLoc(gradient, &minValue, &maxValue);
+        cout << "minValue = " << minValue << "maxValue = " << maxValue << endl;
+        threshold(gradient, gradient, 0.7 * maxValue, 255, THRESH_BINARY);
+
+        //  adaptiveThreshold(gradient, gradient,255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 11, 0);
+        shortShow(gradient);
+        Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(7, 7));
+        Mat kernelo = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+
+        Mat morphology;
+        morphologyEx(gradient, morphology, cv::MORPH_CLOSE, kernel);
+        shortShow(morphology);
+
+        morphologyEx(morphology, morphology, cv::MORPH_OPEN, kernelo);
+        shortShow(morphology);
+
+        morphologyEx(morphology, morphology, cv::MORPH_CLOSE, kernel);
+        shortShow(morphology);
+
+        vector<vector<Point>> contours;
+        findContours(morphology, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+        double bestArea;
+        double bestFill;
+        RotatedRect bestRect;
+        bool found;
+        std::vector<Point> bestcontour;
+
+        for (int i = 0; i < contours.size(); i++) {
+            auto contour = contours.at(i);
+            RotatedRect rr = minAreaRect(contour);
+            Size2f s = rr.size;
+            double fillPercent;
+            double area = contourArea(contour);
+            float w = std::max(s.width, s.height);
+            float h = std::min(s.width, s.height);
+            if (h == 0 || w == 0) continue;
+
+            if ((area < 500) || (area > 60000)) continue;
+            fillPercent = area / (w * h);
+            if (fillPercent < 0.7) continue;
+
+            cout << "w x h = " << w << "x" << h << "=" << w * h << endl;
+            cout << "contour area / rectangleArea = " << area << "/ " << w * h << "= " << fillPercent << endl;
+            if (area > bestArea) {
+                bestcontour = contour;
+                bestArea = area;
+                bestRect = rr;
+                found = true;
+                // drawContours(srcImgToDrawOn, contours, -1, getcolor(), 4);
+                // shortShow(srcImgToDrawOn);
+            }
+        }
+        if (found) {
+            drawContours(srcImgToDrawOn, contours, -1, getcolor(), 4);
+            shortShow(srcImgToDrawOn);
+            cout << " bestRect.angle is " << bestRect.angle << endl;
+
+            contours.clear();
+            std::vector<cv::Point2f> rectpnts;
+            cv::Point2f pts[4];
+            bestRect.points(pts);
+            std::vector<cv::Point> rect_i;
+            for (int i = 0; i < 4; i++) {
+                rect_i.emplace_back(cvRound(pts[i].x), cvRound(pts[i].y));
+            }
+            drawContours(srcImgToDrawOn, contours, -1, getcolor(), 4);
+            shortShow(srcImgToDrawOn);
+
+            contours = {rect_i};
+            cout << " bestRect.angle is " << bestRect.angle << endl;
+            return bestRect.angle;
+        }
+    }
+    return 0;
+}
 
 double BarcodeAnalyzer::alignImageAngle(const cv::Mat &src) {
     std::vector<cv::Point> corners;
@@ -650,128 +747,6 @@ double BarcodeAnalyzer::alignImageAngle(const cv::Mat &src) {
     }
     return bestRect.angle;
 }
- /*
-double BarcodeAnalyzer::alignImageAngle(const cv::Mat &src) {
-    std::vector<cv::Point> corners;
-    
-cv::Mat srcImgToDrawOn;
-    cv::Mat srccpy = src.clone();
-    cv::cvtColor(src, srcImgToDrawOn, cv::COLOR_GRAY2BGR);
-// #else
-    // cv::Mat srcImgToDrawOn = src.clone();
-    // cv::Mat srccpy = src.clone();
-    // cv::cvtColor(src, srccpy, cv::COLOR_BGR2GRAY);
-
-    // #endif 
-    
-    double minValue, maxValue;
-
-    cv::Mat gradX, gradY, gradient;
-    cv::Sobel(srccpy, gradX, CV_8UC1, 1, 0, -1);
-    cv::Sobel(srccpy, gradY, CV_8UC1, 0, 1, -1);
-    cv::subtract(gradX, gradY, gradient);
-    cv::minMaxLoc(gradient, &minValue, &maxValue);
-    shortShow(gradient);
-
-    cv::threshold(gradient, gradient, maxValue * 0.95, 255, cv::THRESH_BINARY);
-    shortShow(gradient);
-
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(9, 9));
-    cv::morphologyEx(gradient, gradient, cv::MORPH_CLOSE, kernel);
-    shortShow(gradient);
-
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(gradient, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
-    double bestArea;
-    cv::RotatedRect bestRect;
-    bool found;
-    std::vector<cv::Point> bestcontour;
-
-    for (const auto &c : contours) {
-    double area = cv::contourArea(c);
-    if (area < 500) continue;
-    if (area > (src.cols * src.rows * 0.2)) continue;
-
-    // Аппроксимация контура (упрощение вершин)
-    std::vector<cv::Point> approx;
-    double peri = cv::arcLength(c, true);
-    cv::approxPolyDP(c, approx, 0.02 * peri, true);
-
-    // Требуем хотя бы несколько вершин (штрих-код — не слишком простой контур)
-    if (approx.size() < 4) continue;
-
-    // Выпуклость: сравниваем площадь контура и площади выпуклой оболочки
-    std::vector<cv::Point> hull;
-    cv::convexHull(c, hull);
-    double hullArea = cv::contourArea(hull);
-    if (hullArea <= 0) continue;
-    double solidity = area / hullArea; // степень заполнения выпуклой оболочки
-    if (solidity < 0.4) continue;      // слишком "дырявый" — отбрасываем
-    if (solidity > 1.02) continue;     // числовая стабильность (хотя обычно <=1)
-
-    // Доп. проверка: выпуклость как булев результат
-    if (!cv::isContourConvex(hull)) continue;
-
-    cv::RotatedRect rr = cv::minAreaRect(c);
-    cv::Size2f s = rr.size;
-    float w = std::max(s.width, s.height);
-    float h = std::min(s.width, s.height);
-    if (h <= 0.0f) continue;
-
-    double ratio = w / h;
-    if (ratio < 2.0) continue;
-
-    double rectArea = w * h;
-    double fillRatio = area / rectArea;
-    if (fillRatio < 0.4) continue;
-
-    if (area > bestArea) {
-        bestArea = area;
-        bestRect = rr;
-        found = true;
-    }
-}
-
-    // for (int i = 0; i < contours.size(); i++) {
-    //     auto contour = contours.at(i);
-    //     cv::RotatedRect rr = cv::minAreaRect(contour);
-    //     cv::Size2f s = rr.size;
-    //     double area = cv::contourArea(contour);
-    //     float w = std::max(s.width, s.height), h = std::min(s.width, s.height);
-
-    //     if ((area < 1000) || (area > 10000)) continue;
-    //     if (h == 0 || w == 0) continue;
-    //     if (w / h < 2.0) continue;
-    //     if (contour.size()) continue;
-    //     if (area > bestArea) {
-    //         bestcontour = contour;
-    //         bestArea = area;
-    //         bestRect = rr;
-    //         found = true;
-    //         // cv::drawContours(srcImgToDrawOn, contours, -1, getcolor(), 4);
-    //         shortShow(srcImgToDrawOn);
-    //     }
-    // }
-
-    if (found) {
-        cv::drawContours(srcImgToDrawOn, contours, -1, getcolor(), 4);
-        shortShow(srcImgToDrawOn);
-
-        contours.clear();
-        std::vector<cv::Point2f> rectpnts;
-        cv::Point2f pts[4];
-        bestRect.points(pts);
-        std::vector<cv::Point> rect_i;
-        for (int i = 0; i < 4; i++) {
-            rect_i.emplace_back(cvRound(pts[i].x), cvRound(pts[i].y));
-        }
-
-        contours = {rect_i};
-    }
-    return bestRect.angle;
-}
-*/
-
 
 void BarcodeAnalyzer::shortShow(const cv::Mat &matrix) {
 #ifdef DebugShowImages
@@ -784,14 +759,13 @@ void BarcodeAnalyzer::shortShow(const cv::Mat &matrix) {
 }
 void BarcodeAnalyzer::shortShow(const cv::Mat &matrix, cv::String name) {
 #ifdef DebugShowImages
-    cv::namedWindow(name, cv::WINDOW_KEEPRATIO | cv::WINDOW_NORMAL);
-    cv::moveWindow("shortShow", 250, 0);
-    cv::imshow("shortShow", matrix);
+    cv::namedWindow(name, cv::WINDOW_KEEPRATIO);
+    cv::moveWindow(name, 250, 0);
+    cv::imshow(name, matrix);
     cv::waitKey(10000);
-    cv::destroyWindow("shortShow");
+    cv::destroyWindow(name);
 #endif
 }
-
 
 QStringList BarcodeAnalyzer::loadAllTemlateFileNames() {
     QDir dir(templatesFolder);

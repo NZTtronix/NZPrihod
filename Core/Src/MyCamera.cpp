@@ -40,7 +40,7 @@ int MyCamera::initCamera() {
 
         if (deviceInfo->nTLayerType != MV_GIGE_INTERFACE) {
             printf("Find No MV_GIGE_DEVICE Devices!\n");
-            ;
+            
         }
 
         nRet = MV_CC_OpenDevice(mvHandle);
